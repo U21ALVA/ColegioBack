@@ -31,11 +31,11 @@ public class Usuario {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "rol_tipo") // Nombre exacto que pusiste en el SQL
     private Rol rol;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "estado_tipo") // Nombre exacto que pusiste en el SQL
     @Builder.Default
     private Estado estado = Estado.ACTIVO;
 
