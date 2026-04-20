@@ -232,4 +232,9 @@ public class PensionService {
     public BigDecimal getTotalRecaudado(UUID anioEscolarId) {
         return pensionRepository.sumMontoFinalPagadoByAnioEscolar(anioEscolarId);
     }
+
+    public Long countPendientes(UUID anioEscolarId) {
+        Long count = pensionRepository.countByAnioEscolarIdAndEstado(anioEscolarId, PensionEstado.PENDIENTE.name());
+        return count != null ? count : 0L;
+    }
 }

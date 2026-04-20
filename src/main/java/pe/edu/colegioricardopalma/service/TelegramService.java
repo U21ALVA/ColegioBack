@@ -81,6 +81,23 @@ public class TelegramService {
         return TelegramVinculacionDto.fromEntity(vinculacion);
     }
 
+    @Transactional
+    public TelegramVinculacionDto desvincular(String username) {
+        Apoderado apoderado = getApoderadoByUsername(username);
+        TelegramVinculacion vinculacion = telegramVinculacionRepository
+                .findFirstByApoderadoIdOrderByCreatedAtDesc(apoderado.getId())
+                .orElseThrow(() -> new EntityNotFoundException("No existe una vinculación para este apoderado"));
+
+        vinculacion.setTelegramChatId(null);
+        vinculacion.setVerificado(false);
+        vinculacion.setFechaVinculacion(null);
+        vinculacion.setCodigoVerificacion(null);
+        vinculacion.setCodigoExpiraAt(null);
+
+        telegramVinculacionRepository.save(vinculacion);
+        return TelegramVinculacionDto.fromEntity(vinculacion);
+    }
+
     public TelegramNotasResponse getNotasByChatId(Long chatId) {
         Apoderado apoderado = validarChatVinculado(chatId);
         List<AlumnoApoderado> alumnosRelacion = alumnoApoderadoRepository.findByApoderadoIdWithAlumno(apoderado.getId());

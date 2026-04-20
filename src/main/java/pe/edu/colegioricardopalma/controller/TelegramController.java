@@ -40,6 +40,14 @@ public class TelegramController {
         return ResponseEntity.ok(telegramService.vincular(request));
     }
 
+    @PostMapping("/desvincular")
+    @PreAuthorize("hasRole('PADRE')")
+    public ResponseEntity<TelegramVinculacionDto> desvincular(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        return ResponseEntity.ok(telegramService.desvincular(userDetails.getUsername()));
+    }
+
     @GetMapping("/notas")
     public ResponseEntity<TelegramNotasResponse> notas(@RequestParam Long chatId) {
         return ResponseEntity.ok(telegramService.getNotasByChatId(chatId));

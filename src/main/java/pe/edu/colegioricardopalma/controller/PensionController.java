@@ -120,6 +120,12 @@ public class PensionController {
         return ResponseEntity.ok(pensionService.findPendientesByAlumno(alumnoId));
     }
 
+    @GetMapping("/pendientes/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Long>> countPendientes(@RequestParam UUID anioEscolarId) {
+        return ResponseEntity.ok(Map.of("total", pensionService.countPendientes(anioEscolarId)));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PensionDto> create(@Valid @RequestBody PensionCreateRequest request) {
