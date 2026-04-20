@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import pe.edu.colegioricardopalma.dto.DocenteCursoDto;
 import pe.edu.colegioricardopalma.entity.AnioEscolar;
 import pe.edu.colegioricardopalma.entity.Docente;
-import pe.edu.colegioricardopalma.entity.Estado;
 import pe.edu.colegioricardopalma.entity.Usuario;
 import pe.edu.colegioricardopalma.repository.AnioEscolarRepository;
 import pe.edu.colegioricardopalma.repository.DocenteCursoRepository;
@@ -46,8 +45,9 @@ public class ProfesorCursoController {
                 .orElseThrow(() -> new EntityNotFoundException("No hay año escolar activo"));
 
         List<DocenteCursoDto> cursos = docenteCursoRepository
-                .findByDocenteAndAnioEscolarWithDetails(docenteId, anioEscolar.getId(), Estado.ACTIVO)
+                .findByDocenteAndAnioEscolarWithDetailsAllStates(docenteId, anioEscolar.getId())
                 .stream()
+                .filter(dc -> dc.getEstado() == pe.edu.colegioricardopalma.entity.Estado.ACTIVO)
                 .map(DocenteCursoDto::fromEntity)
                 .collect(Collectors.toList());
 
@@ -66,8 +66,9 @@ public class ProfesorCursoController {
         }
 
         List<DocenteCursoDto> cursos = docenteCursoRepository
-                .findByDocenteAndAnioEscolarWithDetails(docenteId, anioEscolarId, Estado.ACTIVO)
+                .findByDocenteAndAnioEscolarWithDetailsAllStates(docenteId, anioEscolarId)
                 .stream()
+                .filter(dc -> dc.getEstado() == pe.edu.colegioricardopalma.entity.Estado.ACTIVO)
                 .map(DocenteCursoDto::fromEntity)
                 .collect(Collectors.toList());
 
@@ -88,7 +89,7 @@ public class ProfesorCursoController {
         }
 
         List<DocenteCursoDto> cursos = docenteCursoRepository
-                .findByDocenteAndAnioEscolarWithDetails(docenteId, anioEscolarId, Estado.ACTIVO)
+                .findByDocenteAndAnioEscolarWithDetails(docenteId, anioEscolarId)
                 .stream()
                 .map(DocenteCursoDto::fromEntity)
                 .collect(Collectors.toList());

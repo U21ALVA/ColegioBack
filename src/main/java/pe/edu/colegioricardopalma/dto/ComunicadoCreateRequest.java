@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import pe.edu.colegioricardopalma.entity.ComunicadoDestino;
 import pe.edu.colegioricardopalma.entity.Nivel;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,4 +34,9 @@ public class ComunicadoCreateRequest {
 
     // Usado cuando destinoTipo = NIVEL. Se resolverá a grados al guardar.
     private List<Nivel> niveles;
+
+    private Boolean esReunion;
+    private LocalDateTime fechaReunionInicio;
+    private LocalDateTime fechaReunionFin;
+    private String lugarReunion;
 }

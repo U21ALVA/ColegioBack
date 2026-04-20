@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pe.edu.colegioricardopalma.entity.Estado;
+import pe.edu.colegioricardopalma.entity.Nivel;
 import pe.edu.colegioricardopalma.entity.Seccion;
 
 import java.util.UUID;
@@ -28,6 +29,7 @@ public class SeccionDto {
     private UUID gradoId;
     
     private String gradoNombre;
+    private Nivel gradoNivel;
     private Integer capacidad;
     private Estado estado;
     private Long alumnosActivos;
@@ -43,6 +45,7 @@ public class SeccionDto {
         if (entity.getGrado() != null) {
             dto.setGradoId(entity.getGrado().getId());
             dto.setGradoNombre(entity.getGrado().getNombre());
+            dto.setGradoNivel(entity.getGrado().getNivel());
         }
         
         return dto;

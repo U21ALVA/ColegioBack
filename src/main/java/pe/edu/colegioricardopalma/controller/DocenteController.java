@@ -1,7 +1,6 @@
 package pe.edu.colegioricardopalma.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,10 +18,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/docentes")
-@RequiredArgsConstructor
 public class DocenteController {
 
     private final DocenteService docenteService;
+
+    public DocenteController(DocenteService docenteService) {
+        this.docenteService = docenteService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

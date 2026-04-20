@@ -25,13 +25,19 @@ public interface AlumnoRepository extends JpaRepository<Alumno, UUID> {
 
     List<Alumno> findBySeccionId(UUID seccionId);
 
-    Page<Alumno> findByEstado(Estado estado, Pageable pageable);
+    @Query("SELECT a FROM Alumno a")
+    Page<Alumno> findActivos(Pageable pageable);
 
-    @Query("SELECT a FROM Alumno a WHERE a.grado.id = :gradoId AND a.seccion.id = :seccionId AND a.estado = :estado")
-    List<Alumno> findByGradoAndSeccionAndEstado(
+    @Query("SELECT a FROM Alumno a " +
+           "LEFT JOIN FETCH a.grado g " +
+           "LEFT JOIN FETCH a.seccion s " +
+           "ORDER BY a.apellidos ASC, a.nombres ASC")
+    List<Alumno> findActivosWithDetails();
+
+    @Query("SELECT a FROM Alumno a JOIN FETCH a.grado g LEFT JOIN FETCH a.seccion s WHERE a.grado.id = :gradoId AND a.seccion.id = :seccionId")
+    List<Alumno> findByGradoAndSeccionActivos(
             @Param("gradoId") UUID gradoId,
-            @Param("seccionId") UUID seccionId,
-            @Param("estado") Estado estado);
+            @Param("seccionId") UUID seccionId);
 
     @Query("SELECT a FROM Alumno a JOIN FETCH a.grado g LEFT JOIN FETCH a.seccion WHERE a.id = :id")
     Optional<Alumno> findByIdWithGradoAndSeccion(@Param("id") UUID id);
@@ -40,39 +46,33 @@ public interface AlumnoRepository extends JpaRepository<Alumno, UUID> {
            "(LOWER(a.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(a.apellidos) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(a.dni) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(a.codigoEstudiante) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "AND a.estado = :estado")
+            "OR LOWER(a.codigoEstudiante) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Alumno> searchAlumnos(
             @Param("search") String search,
-            @Param("estado") Estado estado,
             Pageable pageable);
 
     @Query("SELECT a FROM Alumno a WHERE " +
            "(LOWER(a.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(a.apellidos) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(a.dni) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "AND (:gradoId IS NULL OR a.grado.id = :gradoId) " +
-           "AND (:seccionId IS NULL OR a.seccion.id = :seccionId) " +
-           "AND a.estado = :estado")
+            "AND (:gradoId IS NULL OR a.grado.id = :gradoId) " +
+            "AND (:seccionId IS NULL OR a.seccion.id = :seccionId)")
     Page<Alumno> searchAlumnosWithFilters(
             @Param("search") String search,
             @Param("gradoId") UUID gradoId,
             @Param("seccionId") UUID seccionId,
-            @Param("estado") Estado estado,
             Pageable pageable);
 
-    @Query("SELECT a FROM Alumno a JOIN a.grado g WHERE g.nivel = :nivel AND a.estado = :estado")
-    List<Alumno> findByNivelAndEstado(@Param("nivel") Nivel nivel, @Param("estado") Estado estado);
+    @Query("SELECT a FROM Alumno a JOIN a.grado g WHERE g.nivel = :nivel")
+    List<Alumno> findByNivelActivos(@Param("nivel") Nivel nivel);
 
     @Query("SELECT a FROM Alumno a " +
            "LEFT JOIN FETCH a.grado g " +
            "LEFT JOIN FETCH a.seccion s " +
-           "WHERE a.estado = :estado " +
-           "AND (:gradoId IS NULL OR g.id = :gradoId) " +
+           "WHERE (:gradoId IS NULL OR g.id = :gradoId) " +
            "AND (:seccionId IS NULL OR s.id = :seccionId) " +
            "ORDER BY a.apellidos ASC, a.nombres ASC")
     List<Alumno> findActivosForSiagie(
-            @Param("estado") Estado estado,
             @Param("gradoId") UUID gradoId,
             @Param("seccionId") UUID seccionId);
 

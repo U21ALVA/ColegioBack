@@ -1,7 +1,7 @@
 package pe.edu.colegioricardopalma.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +13,8 @@ import pe.edu.colegioricardopalma.dto.RefreshTokenRequest;
 import pe.edu.colegioricardopalma.dto.UserInfoDto;
 import pe.edu.colegioricardopalma.entity.RefreshToken;
 import pe.edu.colegioricardopalma.entity.Usuario;
+import pe.edu.colegioricardopalma.repository.ApoderadoRepository;
+import pe.edu.colegioricardopalma.repository.DocenteRepository;
 import pe.edu.colegioricardopalma.repository.RefreshTokenRepository;
 import pe.edu.colegioricardopalma.repository.UsuarioRepository;
 import pe.edu.colegioricardopalma.security.CustomUserDetailsService;
@@ -20,10 +22,10 @@ import pe.edu.colegioricardopalma.security.JwtService;
 
 import java.time.LocalDateTime;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UsuarioRepository usuarioRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -31,25 +33,47 @@ public class AuthService {
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final AuditoriaService auditoriaService;
+    private final DocenteRepository docenteRepository;
+    private final ApoderadoRepository apoderadoRepository;
+
+    public AuthService(
+            UsuarioRepository usuarioRepository,
+            RefreshTokenRepository refreshTokenRepository,
+            JwtService jwtService,
+            CustomUserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder,
+            AuditoriaService auditoriaService,
+            DocenteRepository docenteRepository,
+            ApoderadoRepository apoderadoRepository
+    ) {
+        this.usuarioRepository = usuarioRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+        this.auditoriaService = auditoriaService;
+        this.docenteRepository = docenteRepository;
+        this.apoderadoRepository = apoderadoRepository;
+    }
 
     @Transactional
     public LoginResponse login(LoginRequest request, String ip, String userAgent) {
         // Find user
-        Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
+        Usuario usuario = resolveUsuarioByDni(request.getDni())
                 .orElseThrow(() -> {
-                    auditoriaService.registrarLoginFallido(request.getUsername(), ip, userAgent);
+                    auditoriaService.registrarLoginFallido(request.getDni(), ip, userAgent);
                     return new BadCredentialsException("Credenciales inválidas");
                 });
 
         // Check user status
         if (usuario.getEstado() != Usuario.Estado.ACTIVO) {
-            auditoriaService.registrarLoginFallido(request.getUsername(), ip, userAgent);
+            auditoriaService.registrarLoginFallido(request.getDni(), ip, userAgent);
             throw new BadCredentialsException("Usuario inactivo");
         }
 
         // Verify password using BCrypt
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPasswordHash())) {
-            auditoriaService.registrarLoginFallido(request.getUsername(), ip, userAgent);
+            auditoriaService.registrarLoginFallido(request.getDni(), ip, userAgent);
             throw new BadCredentialsException("Credenciales inválidas");
         }
 
@@ -162,5 +186,23 @@ public class AuthService {
                 .orElseThrow(() -> new BadCredentialsException("Usuario no encontrado"));
         
         return UserInfoDto.fromUsuario(usuario);
+    }
+
+    private java.util.Optional<Usuario> resolveUsuarioByDni(String dni) {
+        if (dni == null || dni.isBlank()) {
+            return java.util.Optional.empty();
+        }
+        String dniNorm = dni.trim();
+
+        // 1) Prioridad a usuario por username (DNI): evita tomar perfiles legacy
+        //    (docente/apoderado antiguos) que pueden estar inactivos y provocar 401/403 masivos.
+        // 2) Fallback por perfil si no existe username directo.
+        return usuarioRepository.findByUsername(dniNorm)
+                .or(() -> docenteRepository.findByDni(dniNorm)
+                        .map(d -> d.getUsuario())
+                        .filter(java.util.Objects::nonNull))
+                .or(() -> apoderadoRepository.findByDni(dniNorm)
+                        .map(a -> a.getUsuario())
+                        .filter(java.util.Objects::nonNull));
     }
 }

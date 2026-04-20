@@ -2,6 +2,8 @@ package pe.edu.colegioricardopalma.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.util.UUID;
 
@@ -24,11 +26,13 @@ public class Curso {
     private String nombre;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false, columnDefinition = "nivel_tipo")
     private Nivel nivel;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false, columnDefinition = "estado_tipo")
     @Builder.Default
     private Estado estado = Estado.ACTIVO;
 }

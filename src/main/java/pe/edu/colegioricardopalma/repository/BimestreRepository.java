@@ -20,10 +20,10 @@ public interface BimestreRepository extends JpaRepository<Bimestre, UUID> {
     @Query("SELECT b FROM Bimestre b JOIN FETCH b.anioEscolar WHERE b.id = :id")
     Optional<Bimestre> findByIdWithAnioEscolar(@Param("id") UUID id);
 
-    @Query("SELECT b FROM Bimestre b JOIN b.anioEscolar a WHERE a.activo = true ORDER BY b.numero ASC")
+    @Query("SELECT b FROM Bimestre b JOIN FETCH b.anioEscolar a WHERE a.activo = true ORDER BY b.numero ASC")
     List<Bimestre> findByAnioEscolarActivo();
 
-    @Query("SELECT b FROM Bimestre b JOIN b.anioEscolar a WHERE a.activo = true AND b.cerrado = false ORDER BY b.numero ASC")
+    @Query("SELECT b FROM Bimestre b JOIN FETCH b.anioEscolar a WHERE a.activo = true AND b.cerrado = false ORDER BY b.numero ASC")
     List<Bimestre> findBimestresAbiertosAnioActivo();
 
     boolean existsByNumeroAndAnioEscolarId(Integer numero, UUID anioEscolarId);

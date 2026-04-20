@@ -31,13 +31,16 @@ public class NotaService {
     private final DocenteRepository docenteRepository;
     private final DocenteCursoRepository docenteCursoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final AlumnoCursoRepository alumnoCursoRepository;
 
+    @Transactional(readOnly = true)
     public List<NotaDto> findAll() {
         return notaRepository.findAll().stream()
                 .map(NotaDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public PageResponse<NotaDto> findWithFilters(
             UUID alumnoId,
             UUID cursoId,
@@ -88,6 +91,7 @@ public class NotaService {
                 .orElseThrow(() -> new EntityNotFoundException("Bimestre no encontrado: " + request.getBimestreId()));
 
         validateBimestreOpen(bimestre);
+        validateAlumnoMatriculadoEnCurso(alumno, curso.getId(), bimestre.getAnioEscolar().getId());
 
         // Check for duplicate
         if (notaRepository.existsByAlumnoIdAndCursoIdAndBimestreId(
@@ -187,6 +191,8 @@ public class NotaService {
                     .orElseThrow(() -> new EntityNotFoundException(
                             "Alumno no encontrado: " + notaRequest.getAlumnoId()));
 
+            validateAlumnoMatriculadoEnCurso(alumno, request.getCursoId(), bimestre.getAnioEscolar().getId());
+
             // Check if nota already exists
             Nota nota = notaRepository.findByAlumnoIdAndCursoIdAndBimestreId(
                     notaRequest.getAlumnoId(), request.getCursoId(), request.getBimestreId())
@@ -260,6 +266,25 @@ public class NotaService {
         if (bimestre.getCerrado()) {
             throw new IllegalStateException(
                     "El bimestre " + bimestre.getNumero() + " está cerrado. No se pueden modificar notas.");
+        }
+    }
+
+    private void validateAlumnoMatriculadoEnCurso(Alumno alumno, UUID cursoId, UUID anioEscolarId) {
+        if (alumno.getSeccion() == null) {
+            throw new IllegalArgumentException("El alumno " + alumno.getNombreCompleto() + " no tiene sección asignada");
+        }
+
+        boolean matriculado = alumnoCursoRepository
+                .existsByAlumnoIdAndCursoIdAndSeccionIdAndAnioEscolarIdAndEstado(
+                        alumno.getId(),
+                        cursoId,
+                        alumno.getSeccion().getId(),
+                        anioEscolarId,
+                        Estado.ACTIVO
+                );
+
+        if (!matriculado) {
+            throw new IllegalArgumentException("El alumno " + alumno.getNombreCompleto() + " no está matriculado en el curso seleccionado");
         }
     }
 

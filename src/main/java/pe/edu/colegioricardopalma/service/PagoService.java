@@ -1,8 +1,9 @@
 package pe.edu.colegioricardopalma.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +24,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class PagoService {
+
+    private static final Logger log = LoggerFactory.getLogger(PagoService.class);
 
     private final PagoRepository pagoRepository;
     private final PensionRepository pensionRepository;
+
+    public PagoService(PagoRepository pagoRepository, PensionRepository pensionRepository) {
+        this.pagoRepository = pagoRepository;
+        this.pensionRepository = pensionRepository;
+    }
 
     public List<PagoDto> findAll() {
         return pagoRepository.findAll().stream()
@@ -38,8 +44,19 @@ public class PagoService {
     }
 
     public PageResponse<PagoDto> findWithFilters(PagoEstado estado, Pageable pageable) {
-        Page<PagoDto> page = pagoRepository.findActiveWithFilters(estado, pageable)
-                .map(PagoDto::fromEntity);
+        Page<Pago> rawPage = pagoRepository.findActive(pageable);
+        Page<PagoDto> page;
+
+        if (estado == null) {
+            page = rawPage.map(PagoDto::fromEntity);
+        } else {
+            List<PagoDto> filtered = rawPage.getContent().stream()
+                    .filter(p -> p.getEstado() == estado)
+                    .map(PagoDto::fromEntity)
+                    .collect(Collectors.toList());
+            page = new PageImpl<>(filtered, pageable, filtered.size());
+        }
+
         return PageResponse.from(page);
     }
 
@@ -123,6 +140,6 @@ public class PagoService {
     }
 
     public Long countCompletadosAnioEscolar(UUID anioEscolarId) {
-        return pagoRepository.countByEstadoAndAnioEscolar(PagoEstado.COMPLETADO, anioEscolarId);
+        return pagoRepository.countCompletadosByAnioEscolar(anioEscolarId);
     }
 }

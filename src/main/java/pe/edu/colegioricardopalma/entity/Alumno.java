@@ -3,7 +3,9 @@ package pe.edu.colegioricardopalma.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,7 +50,8 @@ public class Alumno {
     private Seccion seccion;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false, columnDefinition = "estado_tipo")
     @Builder.Default
     private Estado estado = Estado.ACTIVO;
 

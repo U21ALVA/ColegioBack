@@ -24,13 +24,15 @@ public class SeccionService {
     private final SeccionRepository seccionRepository;
     private final GradoRepository gradoRepository;
 
+    @Transactional(readOnly = true)
     public List<SeccionDto> findAll() {
-        return seccionRepository.findAllActiveWithGrado(Estado.ACTIVO)
+        return seccionRepository.findAllActiveWithGrado()
                 .stream()
                 .map(this::toDtoWithCount)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<SeccionDto> findByGradoId(UUID gradoId) {
         return seccionRepository.findByGradoIdOrderByNombreAsc(gradoId)
                 .stream()
@@ -38,13 +40,15 @@ public class SeccionService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<SeccionDto> findByGradoIdActivas(UUID gradoId) {
-        return seccionRepository.findByGradoIdAndEstado(gradoId, Estado.ACTIVO)
+        return seccionRepository.findByGradoIdActivas(gradoId)
                 .stream()
                 .map(this::toDtoWithCount)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public SeccionDto findById(UUID id) {
         Seccion seccion = seccionRepository.findByIdWithGrado(id)
                 .orElseThrow(() -> new EntityNotFoundException("Sección no encontrada: " + id));

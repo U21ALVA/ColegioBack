@@ -1,7 +1,6 @@
 package pe.edu.colegioricardopalma.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,13 +26,24 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/pensiones")
-@RequiredArgsConstructor
 public class PensionController {
 
     private final PensionService pensionService;
     private final UsuarioRepository usuarioRepository;
     private final ApoderadoRepository apoderadoRepository;
     private final AlumnoApoderadoRepository alumnoApoderadoRepository;
+
+    public PensionController(
+            PensionService pensionService,
+            UsuarioRepository usuarioRepository,
+            ApoderadoRepository apoderadoRepository,
+            AlumnoApoderadoRepository alumnoApoderadoRepository
+    ) {
+        this.pensionService = pensionService;
+        this.usuarioRepository = usuarioRepository;
+        this.apoderadoRepository = apoderadoRepository;
+        this.alumnoApoderadoRepository = alumnoApoderadoRepository;
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PADRE')")

@@ -1,6 +1,5 @@
 package pe.edu.colegioricardopalma.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,12 +19,21 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/boletas")
-@RequiredArgsConstructor
 public class BoletaController {
 
     private final BoletaService boletaService;
     private final AnioEscolarRepository anioEscolarRepository;
     private final UsuarioRepository usuarioRepository;
+
+    public BoletaController(
+            BoletaService boletaService,
+            AnioEscolarRepository anioEscolarRepository,
+            UsuarioRepository usuarioRepository
+    ) {
+        this.boletaService = boletaService;
+        this.anioEscolarRepository = anioEscolarRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @GetMapping("/alumno/{alumnoId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESOR', 'PADRE')")

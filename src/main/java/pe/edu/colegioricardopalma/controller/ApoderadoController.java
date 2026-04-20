@@ -1,7 +1,6 @@
 package pe.edu.colegioricardopalma.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,10 +19,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/apoderados")
-@RequiredArgsConstructor
 public class ApoderadoController {
 
     private final ApoderadoService apoderadoService;
+
+    public ApoderadoController(ApoderadoService apoderadoService) {
+        this.apoderadoService = apoderadoService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

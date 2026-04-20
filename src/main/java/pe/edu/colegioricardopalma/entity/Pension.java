@@ -3,7 +3,9 @@ package pe.edu.colegioricardopalma.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -51,7 +53,8 @@ public class Pension {
     private BigDecimal montoFinal;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false, columnDefinition = "pension_estado")
     @Builder.Default
     private PensionEstado estado = PensionEstado.PENDIENTE;
 

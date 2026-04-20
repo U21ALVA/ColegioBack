@@ -26,6 +26,7 @@ public interface AlumnoApoderadoRepository extends JpaRepository<AlumnoApoderado
 
     @Query("SELECT aa FROM AlumnoApoderado aa " +
             "JOIN FETCH aa.alumno a " +
+            "JOIN FETCH aa.apoderado ap " +
             "LEFT JOIN FETCH a.grado " +
             "LEFT JOIN FETCH a.seccion " +
             "WHERE aa.apoderado.id = :apoderadoId")
@@ -53,4 +54,6 @@ public interface AlumnoApoderadoRepository extends JpaRepository<AlumnoApoderado
     boolean existsByAlumnoIdAndApoderadoId(UUID alumnoId, UUID apoderadoId);
 
     void deleteByAlumnoIdAndApoderadoId(UUID alumnoId, UUID apoderadoId);
+
+    long countByApoderadoId(UUID apoderadoId);
 }

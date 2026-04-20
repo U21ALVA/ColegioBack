@@ -72,7 +72,7 @@ public class SiagieExportService {
         }
 
         List<Curso> cursosSeleccionados = resolverCursos(request.getCursoIds());
-        List<Alumno> alumnos = alumnoRepository.findActivosForSiagie(Estado.ACTIVO, request.getGradoId(), request.getSeccionId());
+        List<Alumno> alumnos = alumnoRepository.findActivosForSiagie(request.getGradoId(), request.getSeccionId());
 
         if (alumnos.isEmpty()) {
             throw new IllegalArgumentException("No hay alumnos activos para los filtros seleccionados");
@@ -138,18 +138,35 @@ public class SiagieExportService {
     }
 
     public List<CursoDto> cursosDisponibles() {
-        return cursoRepository.findAllActiveOrderByNivelAndNombre(Estado.ACTIVO).stream()
+        return cursoRepository.findAllActiveOrderByNivelAndNombre().stream()
                 .map(CursoDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> filtros() {
         Map<String, Object> payload = new HashMap<>();
-        payload.put("anios", anioEscolarRepository.findAllOrderByAnioDesc().stream().map(AnioEscolarDto::fromEntity).toList());
-        payload.put("bimestres", bimestreRepository.findByAnioEscolarActivo().stream().map(BimestreDto::fromEntity).toList());
-        payload.put("grados", gradoRepository.findAllActiveOrderByOrden(Estado.ACTIVO).stream().map(GradoDto::fromEntity).toList());
-        payload.put("secciones", seccionRepository.findAllActiveWithGrado(Estado.ACTIVO).stream().map(SeccionDto::fromEntity).toList());
+        List<AnioEscolar> anios = bootstrapAnioEscolarConBimestres2026();
+
+        payload.put("anios", anios.stream().map(AnioEscolarDto::fromEntity).toList());
+
+        List<Bimestre> bimestres = bimestreRepository.findByAnioEscolarActivo();
+        if (bimestres.isEmpty() && !anios.isEmpty()) {
+            bimestres = bimestreRepository.findByAnioEscolarIdOrderByNumeroAsc(anios.get(0).getId());
+        }
+        payload.put("bimestres", bimestres.stream().map(BimestreDto::fromEntity).toList());
+
+        List<Grado> grados = gradoRepository.findAllOrderByOrden();
+        payload.put("grados", grados.stream().map(GradoDto::fromEntity).toList());
+
+        List<Seccion> secciones = seccionRepository.findAll();
+        payload.put("secciones", secciones.stream().map(SeccionDto::fromEntity).toList());
         return payload;
+    }
+
+    @Transactional(readOnly = true)
+    protected List<AnioEscolar> bootstrapAnioEscolarConBimestres2026() {
+        return anioEscolarRepository.findAllOrderByAnioDesc();
     }
 
     private List<Curso> resolverCursos(List<UUID> cursoIds) {
@@ -157,7 +174,7 @@ public class SiagieExportService {
             throw new IllegalArgumentException("Solo se permiten hasta 3 cursos por exportación");
         }
 
-        List<Curso> activosOrdenados = cursoRepository.findAllActiveOrderByNivelAndNombre(Estado.ACTIVO);
+        List<Curso> activosOrdenados = cursoRepository.findAllActiveOrderByNivelAndNombre();
         if (activosOrdenados.isEmpty()) {
             throw new IllegalStateException("No existen cursos activos para exportar");
         }

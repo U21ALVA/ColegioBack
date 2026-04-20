@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.edu.colegioricardopalma.dto.DocenteDto;
 import pe.edu.colegioricardopalma.dto.PageResponse;
 import pe.edu.colegioricardopalma.entity.Docente;
-import pe.edu.colegioricardopalma.entity.Estado;
 import pe.edu.colegioricardopalma.entity.Usuario;
 import pe.edu.colegioricardopalma.repository.DocenteRepository;
 import pe.edu.colegioricardopalma.repository.UsuarioRepository;
@@ -30,14 +29,14 @@ public class DocenteService {
     private final PasswordEncoder passwordEncoder;
 
     public List<DocenteDto> findAll() {
-        return docenteRepository.findByEstado(Estado.ACTIVO)
+        return docenteRepository.findActivos()
                 .stream()
                 .map(DocenteDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public PageResponse<DocenteDto> findAllPaginated(Pageable pageable) {
-        Page<DocenteDto> page = docenteRepository.findByEstado(Estado.ACTIVO, pageable)
+        Page<DocenteDto> page = docenteRepository.findActivos(pageable)
                 .map(DocenteDto::fromEntity);
         return PageResponse.from(page);
     }
@@ -45,7 +44,6 @@ public class DocenteService {
     public PageResponse<DocenteDto> search(String search, Pageable pageable) {
         Page<DocenteDto> page = docenteRepository.searchDocentes(
                 search != null ? search : "",
-                Estado.ACTIVO,
                 pageable
         ).map(DocenteDto::fromEntity);
         return PageResponse.from(page);
@@ -134,7 +132,7 @@ public class DocenteService {
         Docente docente = docenteRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Docente no encontrado: " + id));
 
-        docente.setEstado(Estado.ELIMINADO);
+        docente.setEstado(pe.edu.colegioricardopalma.entity.Estado.ELIMINADO);
         
         // Also deactivate user account if exists
         if (docente.getUsuario() != null) {

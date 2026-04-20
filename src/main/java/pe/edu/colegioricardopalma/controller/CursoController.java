@@ -59,7 +59,7 @@ public class CursoController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESOR')")
     public ResponseEntity<CursoDto> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(cursoService.findById(id));
     }

@@ -2,9 +2,11 @@ package pe.edu.colegioricardopalma.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
@@ -34,7 +36,8 @@ public class Comunicado {
     private String adjuntoUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "destino_tipo", nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "destino_tipo", nullable = false, columnDefinition = "comunicado_destino")
     private ComunicadoDestino destinoTipo;
 
     @Column(name = "destino_ids", columnDefinition = "uuid[]")
@@ -42,12 +45,26 @@ public class Comunicado {
     private UUID[] destinoIds;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(nullable = false, columnDefinition = "comunicado_estado")
     @Builder.Default
     private ComunicadoEstado estado = ComunicadoEstado.BORRADOR;
 
     @Column(name = "fecha_publicacion")
     private LocalDateTime fechaPublicacion;
+
+    @Column(name = "es_reunion", nullable = false)
+    @Builder.Default
+    private Boolean esReunion = false;
+
+    @Column(name = "fecha_reunion_inicio")
+    private LocalDateTime fechaReunionInicio;
+
+    @Column(name = "fecha_reunion_fin")
+    private LocalDateTime fechaReunionFin;
+
+    @Column(name = "lugar_reunion", length = 200)
+    private String lugarReunion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)

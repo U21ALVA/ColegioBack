@@ -9,7 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.edu.colegioricardopalma.dto.AlumnoApoderadoDto;
 import pe.edu.colegioricardopalma.dto.AlumnoDto;
 import pe.edu.colegioricardopalma.dto.PageResponse;
-import pe.edu.colegioricardopalma.entity.*;
+import pe.edu.colegioricardopalma.entity.Alumno;
+import pe.edu.colegioricardopalma.entity.Estado;
+import pe.edu.colegioricardopalma.entity.Grado;
+import pe.edu.colegioricardopalma.entity.Seccion;
 import pe.edu.colegioricardopalma.repository.*;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -28,14 +31,14 @@ public class AlumnoService {
     private final AlumnoApoderadoRepository alumnoApoderadoRepository;
 
     public List<AlumnoDto> findAll() {
-        return alumnoRepository.findByEstado(Estado.ACTIVO, Pageable.unpaged())
+        return alumnoRepository.findActivosWithDetails()
                 .stream()
                 .map(AlumnoDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public PageResponse<AlumnoDto> findAllPaginated(Pageable pageable) {
-        Page<AlumnoDto> page = alumnoRepository.findByEstado(Estado.ACTIVO, pageable)
+        Page<AlumnoDto> page = alumnoRepository.findActivos(pageable)
                 .map(AlumnoDto::fromEntity);
         return PageResponse.from(page);
     }
@@ -43,7 +46,6 @@ public class AlumnoService {
     public PageResponse<AlumnoDto> search(String search, Pageable pageable) {
         Page<AlumnoDto> page = alumnoRepository.searchAlumnos(
                 search != null ? search : "",
-                Estado.ACTIVO,
                 pageable
         ).map(AlumnoDto::fromEntity);
         return PageResponse.from(page);
@@ -54,15 +56,15 @@ public class AlumnoService {
                 search != null ? search : "",
                 gradoId,
                 seccionId,
-                Estado.ACTIVO,
                 pageable
         ).map(AlumnoDto::fromEntity);
         return PageResponse.from(page);
     }
 
     public List<AlumnoDto> findByGradoAndSeccion(UUID gradoId, UUID seccionId) {
-        return alumnoRepository.findByGradoAndSeccionAndEstado(gradoId, seccionId, Estado.ACTIVO)
+        return alumnoRepository.findByGradoAndSeccionActivos(gradoId, seccionId)
                 .stream()
+                .filter(a -> a.getEstado() == pe.edu.colegioricardopalma.entity.Estado.ACTIVO)
                 .map(AlumnoDto::fromEntity)
                 .collect(Collectors.toList());
     }

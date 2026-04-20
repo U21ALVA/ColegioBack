@@ -3,7 +3,9 @@ package pe.edu.colegioricardopalma.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -31,10 +33,12 @@ public class Usuario {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(nullable = false, columnDefinition = "rol_tipo") // Nombre exacto que pusiste en el SQL
     private Rol rol;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(nullable = false, columnDefinition = "estado_tipo") // Nombre exacto que pusiste en el SQL
     @Builder.Default
     private Estado estado = Estado.ACTIVO;

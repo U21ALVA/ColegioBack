@@ -30,7 +30,6 @@ public class DocenteCursoDto {
     private String cursoNombre;
     private Nivel cursoNivel;
     
-    @NotNull(message = "El grado es requerido")
     private UUID gradoId;
     private String gradoNombre;
     
@@ -90,5 +89,17 @@ public class DocenteCursoDto {
 
     public String getFullDescription() {
         return String.format("%s - %s %s", cursoNombre, gradoNombre, seccionNombre);
+    }
+
+    public String getCursoCodigo() {
+        return cursoNombre;
+    }
+
+    public Nivel getGradoNivel() {
+        return cursoNivel;
+    }
+
+    public String getAnioEscolarNombre() {
+        return anio != null ? String.valueOf(anio) : null;
     }
 }

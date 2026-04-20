@@ -2,8 +2,8 @@ package pe.edu.colegioricardopalma.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,13 +16,17 @@ import pe.edu.colegioricardopalma.service.AuthService;
 
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
@@ -32,7 +36,7 @@ public class AuthController {
         String ip = getClientIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
         
-        log.info("Login attempt for user: {} from IP: {}", request.getUsername(), ip);
+        log.info("Login attempt for DNI: {} from IP: {}", request.getDni(), ip);
         
         LoginResponse response = authService.login(request, ip, userAgent);
         return ResponseEntity.ok(response);

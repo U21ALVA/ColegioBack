@@ -22,19 +22,19 @@ public interface DocenteRepository extends JpaRepository<Docente, UUID> {
 
     Optional<Docente> findByUsuarioId(UUID usuarioId);
 
-    List<Docente> findByEstado(Estado estado);
+    @Query("SELECT d FROM Docente d LEFT JOIN FETCH d.usuario")
+    List<Docente> findActivos();
 
-    Page<Docente> findByEstado(Estado estado, Pageable pageable);
+    @Query("SELECT d FROM Docente d")
+    Page<Docente> findActivos(Pageable pageable);
 
     @Query("SELECT d FROM Docente d WHERE " +
            "(LOWER(d.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(d.apellidos) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(d.dni) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(d.email) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "AND d.estado = :estado")
+           "OR LOWER(d.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Docente> searchDocentes(
             @Param("search") String search,
-            @Param("estado") Estado estado,
             Pageable pageable);
 
     @Query("SELECT d FROM Docente d LEFT JOIN FETCH d.usuario WHERE d.id = :id")

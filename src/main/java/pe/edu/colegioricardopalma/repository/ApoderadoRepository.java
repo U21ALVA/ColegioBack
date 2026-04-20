@@ -22,19 +22,19 @@ public interface ApoderadoRepository extends JpaRepository<Apoderado, UUID> {
 
     Optional<Apoderado> findByUsuarioId(UUID usuarioId);
 
-    List<Apoderado> findByEstado(Estado estado);
+    @Query("SELECT a FROM Apoderado a LEFT JOIN FETCH a.usuario")
+    List<Apoderado> findActivos();
 
-    Page<Apoderado> findByEstado(Estado estado, Pageable pageable);
+    @Query("SELECT a FROM Apoderado a")
+    Page<Apoderado> findActivos(Pageable pageable);
 
     @Query("SELECT a FROM Apoderado a WHERE " +
            "(LOWER(a.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(a.apellidos) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(a.dni) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(a.email) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "AND a.estado = :estado")
+           "OR LOWER(a.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Apoderado> searchApoderados(
             @Param("search") String search,
-            @Param("estado") Estado estado,
             Pageable pageable);
 
     @Query("SELECT a FROM Apoderado a LEFT JOIN FETCH a.usuario LEFT JOIN FETCH a.alumnos al LEFT JOIN FETCH al.alumno WHERE a.id = :id")

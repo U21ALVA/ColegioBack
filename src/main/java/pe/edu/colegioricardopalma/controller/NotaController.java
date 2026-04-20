@@ -1,7 +1,6 @@
 package pe.edu.colegioricardopalma.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.colegioricardopalma.dto.*;
 import pe.edu.colegioricardopalma.repository.DocenteRepository;
+import pe.edu.colegioricardopalma.repository.UsuarioRepository;
 import pe.edu.colegioricardopalma.service.NotaService;
 
 import java.util.List;
@@ -21,11 +21,17 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/notas")
-@RequiredArgsConstructor
 public class NotaController {
 
     private final NotaService notaService;
     private final DocenteRepository docenteRepository;
+    private final UsuarioRepository usuarioRepository;
+
+    public NotaController(NotaService notaService, DocenteRepository docenteRepository, UsuarioRepository usuarioRepository) {
+        this.notaService = notaService;
+        this.docenteRepository = docenteRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'PROFESOR')")
@@ -113,10 +119,14 @@ public class NotaController {
         if (userDetails == null) {
             return null;
         }
-        return docenteRepository.findByUsuarioId(
-                // We need to get the usuario ID from the user details
-                // For now, we'll try to find by username
-                null
-        ).map(d -> d.getId()).orElse(null);
+        var usuarioOpt = usuarioRepository.findByUsername(userDetails.getUsername());
+        if (usuarioOpt.isEmpty()) {
+            return null;
+        }
+        var docenteOpt = docenteRepository.findByUsuarioId(usuarioOpt.get().getId());
+        if (docenteOpt.isEmpty()) {
+            return null;
+        }
+        return docenteOpt.get().getId();
     }
 }

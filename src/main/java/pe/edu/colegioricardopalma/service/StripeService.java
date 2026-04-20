@@ -37,7 +37,7 @@ public class StripeService {
     @Value("${stripe.webhook-secret}")
     private String webhookSecret;
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
     /**
@@ -63,7 +63,7 @@ public class StripeService {
                 alumno.getApellidos());
 
         // Determine success and cancel URLs
-        String baseUrl = frontendUrl.split(",")[0].trim();
+        String baseUrl = frontendUrl.trim();
         String successUrl = request.getSuccessUrl() != null 
                 ? request.getSuccessUrl() 
                 : baseUrl + "/padre/pagos/success?session_id={CHECKOUT_SESSION_ID}";
@@ -240,6 +240,34 @@ public class StripeService {
      */
     public boolean verifySessionPayment(String sessionId) throws StripeException {
         Session session = Session.retrieve(sessionId);
-        return "paid".equals(session.getPaymentStatus());
+        boolean paid = "paid".equals(session.getPaymentStatus());
+
+        if (paid) {
+            String paymentIntentId = session.getPaymentIntent();
+            String paymentMethodType = session.getPaymentMethodTypes() != null && !session.getPaymentMethodTypes().isEmpty()
+                    ? session.getPaymentMethodTypes().get(0)
+                    : "card";
+
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("customer_email", session.getCustomerEmail());
+            metadata.put("payment_status", session.getPaymentStatus());
+            if (session.getMetadata() != null) {
+                metadata.putAll(session.getMetadata());
+            }
+
+            try {
+                pagoService.updateFromWebhook(
+                        session.getId(),
+                        paymentIntentId,
+                        PagoEstado.COMPLETADO,
+                        paymentMethodType,
+                        metadata
+                );
+            } catch (EntityNotFoundException e) {
+                log.warn("No se encontró pago local para sesión {} al verificar", sessionId);
+            }
+        }
+
+        return paid;
     }
 }

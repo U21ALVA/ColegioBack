@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.edu.colegioricardopalma.dto.GradoDto;
 import pe.edu.colegioricardopalma.dto.PageResponse;
-import pe.edu.colegioricardopalma.entity.Estado;
 import pe.edu.colegioricardopalma.entity.Grado;
 import pe.edu.colegioricardopalma.entity.Nivel;
 import pe.edu.colegioricardopalma.repository.GradoRepository;
@@ -33,7 +32,7 @@ public class GradoService {
     }
 
     public List<GradoDto> findAllActivos() {
-        return gradoRepository.findAllActiveOrderByOrden(Estado.ACTIVO)
+        return gradoRepository.findAllActiveOrderByOrden()
                 .stream()
                 .map(GradoDto::fromEntity)
                 .collect(Collectors.toList());
@@ -47,7 +46,7 @@ public class GradoService {
     }
 
     public PageResponse<GradoDto> findAllPaginated(Pageable pageable) {
-        Page<GradoDto> page = gradoRepository.findByEstado(Estado.ACTIVO, pageable)
+        Page<GradoDto> page = gradoRepository.findActivos(pageable)
                 .map(GradoDto::fromEntity);
         return PageResponse.from(page);
     }
@@ -107,7 +106,7 @@ public class GradoService {
                 .orElseThrow(() -> new EntityNotFoundException("Grado no encontrado: " + id));
 
         // Soft delete - change status to ELIMINADO
-        grado.setEstado(Estado.ELIMINADO);
+        grado.setEstado(pe.edu.colegioricardopalma.entity.Estado.ELIMINADO);
         gradoRepository.save(grado);
         log.info("Grado eliminado (soft): {} ({})", grado.getNombre(), grado.getNivel());
     }

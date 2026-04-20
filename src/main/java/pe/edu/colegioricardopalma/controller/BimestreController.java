@@ -1,7 +1,6 @@
 package pe.edu.colegioricardopalma.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +14,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/bimestres")
-@RequiredArgsConstructor
 public class BimestreController {
 
     private final BimestreService bimestreService;
+
+    public BimestreController(BimestreService bimestreService) {
+        this.bimestreService = bimestreService;
+    }
 
     @GetMapping("/anio-escolar/{anioEscolarId}")
     public ResponseEntity<List<BimestreDto>> findByAnioEscolar(@PathVariable UUID anioEscolarId) {
@@ -27,6 +29,11 @@ public class BimestreController {
 
     @GetMapping("/activo")
     public ResponseEntity<List<BimestreDto>> findByAnioActivo() {
+        return ResponseEntity.ok(bimestreService.findByAnioActivo());
+    }
+
+    @GetMapping("/activos")
+    public ResponseEntity<List<BimestreDto>> findByAnioActivosAlias() {
         return ResponseEntity.ok(bimestreService.findByAnioActivo());
     }
 

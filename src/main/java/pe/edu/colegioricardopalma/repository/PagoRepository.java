@@ -26,19 +26,17 @@ public interface PagoRepository extends JpaRepository<Pago, UUID> {
 
     Optional<Pago> findByStripePaymentIntentId(String paymentIntentId);
 
-    @Query("SELECT p FROM Pago p WHERE p.estado = :estado")
-    List<Pago> findByEstado(@Param("estado") PagoEstado estado);
+    @Query(value = "SELECT p.* FROM pago p WHERE p.estado = CAST(:estado AS pago_estado)", nativeQuery = true)
+    List<Pago> findByEstado(@Param("estado") String estado);
 
     @Query("SELECT p FROM Pago p " +
            "JOIN FETCH p.pension pe " +
            "JOIN FETCH pe.alumno a " +
            "WHERE p.fechaPago BETWEEN :fechaInicio AND :fechaFin " +
-           "AND (:estado IS NULL OR p.estado = :estado) " +
            "ORDER BY p.fechaPago DESC")
     Page<Pago> findByFechaRangeAndEstado(
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin,
-            @Param("estado") PagoEstado estado,
             Pageable pageable);
 
     @Query("SELECT p FROM Pago p " +
@@ -46,11 +44,8 @@ public interface PagoRepository extends JpaRepository<Pago, UUID> {
            "JOIN FETCH pe.alumno a " +
            "JOIN FETCH pe.anioEscolar ae " +
            "WHERE ae.activo = true " +
-           "AND (:estado IS NULL OR p.estado = :estado) " +
            "ORDER BY p.createdAt DESC")
-    Page<Pago> findActiveWithFilters(
-            @Param("estado") PagoEstado estado,
-            Pageable pageable);
+    Page<Pago> findActive(Pageable pageable);
 
     @Query("SELECT COALESCE(SUM(p.monto), 0) FROM Pago p " +
            "WHERE p.estado = 'COMPLETADO' " +
@@ -59,13 +54,13 @@ public interface PagoRepository extends JpaRepository<Pago, UUID> {
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin);
 
-    @Query("SELECT COUNT(p) FROM Pago p WHERE p.estado = :estado AND p.pension.anioEscolar.id = :anioEscolarId")
-    Long countByEstadoAndAnioEscolar(
-            @Param("estado") PagoEstado estado,
-            @Param("anioEscolarId") UUID anioEscolarId);
+    @Query(value = "SELECT COUNT(p.id) FROM pago p JOIN pension pe ON pe.id = p.pension_id " +
+            "WHERE p.estado = CAST('COMPLETADO' AS pago_estado) AND pe.anio_escolar_id = :anioEscolarId",
+            nativeQuery = true)
+    Long countCompletadosByAnioEscolar(@Param("anioEscolarId") UUID anioEscolarId);
 
-    @Query("SELECT COALESCE(SUM(p.monto), 0) FROM Pago p " +
-           "WHERE p.estado = 'COMPLETADO' " +
-           "AND p.pension.anioEscolar.id = :anioEscolarId")
+    @Query(value = "SELECT COALESCE(SUM(p.monto), 0) FROM pago p JOIN pension pe ON pe.id = p.pension_id " +
+            "WHERE p.estado = CAST('COMPLETADO' AS pago_estado) AND pe.anio_escolar_id = :anioEscolarId",
+            nativeQuery = true)
     java.math.BigDecimal sumMontoCompletadoByAnioEscolar(@Param("anioEscolarId") UUID anioEscolarId);
 }

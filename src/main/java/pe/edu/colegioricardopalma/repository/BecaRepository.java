@@ -40,6 +40,7 @@ public interface BecaRepository extends JpaRepository<Beca, UUID> {
     @Query("SELECT b FROM Beca b " +
            "JOIN FETCH b.alumno a " +
            "JOIN FETCH b.anioEscolar ae " +
+           "LEFT JOIN FETCH b.aprobadoPor ap " +
            "WHERE ae.activo = true " +
            "AND (:tipo IS NULL OR b.tipo = :tipo) " +
            "AND (:vigente IS NULL OR b.vigente = :vigente)")

@@ -51,6 +51,10 @@ public class ComunicadoService {
                 .adjuntoUrl(request.getAdjuntoUrl())
                 .destinoTipo(request.getDestinoTipo())
                 .destinoIds(destinoIds)
+                .esReunion(Boolean.TRUE.equals(request.getEsReunion()))
+                .fechaReunionInicio(request.getFechaReunionInicio())
+                .fechaReunionFin(request.getFechaReunionFin())
+                .lugarReunion(request.getLugarReunion())
                 .estado(ComunicadoEstado.BORRADOR)
                 .createdBy(creador)
                 .build();
@@ -156,7 +160,7 @@ public class ComunicadoService {
         List<UUID> destinoIds = destinoIdsArray != null ? Arrays.asList(destinoIdsArray) : List.of();
 
         switch (destino) {
-            case TODOS -> apoderadoRepository.findByEstado(Estado.ACTIVO)
+            case TODOS -> apoderadoRepository.findActivos()
                     .forEach(a -> ids.add(a.getId()));
 
             case GRADO -> {

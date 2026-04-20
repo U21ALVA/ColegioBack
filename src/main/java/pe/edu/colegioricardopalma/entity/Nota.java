@@ -3,7 +3,9 @@ package pe.edu.colegioricardopalma.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -52,7 +54,8 @@ public class Nota {
     private BigDecimal notaFinal;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "literal")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "literal", columnDefinition = "literal_nota")
     private LiteralNota literal;
 
     @ManyToOne(fetch = FetchType.LAZY)

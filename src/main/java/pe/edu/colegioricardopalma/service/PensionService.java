@@ -43,8 +43,17 @@ public class PensionService {
 
     public PageResponse<PensionDto> findWithFilters(
             Integer mes, PensionEstado estado, UUID gradoId, Pageable pageable) {
-        Page<PensionDto> page = pensionRepository.findActiveWithFilters(mes, estado, gradoId, pageable)
-                .map(PensionDto::fromEntity);
+        Page<Pension> basePage = pensionRepository.findActiveWithFilters(mes, gradoId, pageable);
+        Page<PensionDto> page;
+        if (estado == null) {
+            page = basePage.map(PensionDto::fromEntity);
+        } else {
+            List<PensionDto> filtered = basePage.getContent().stream()
+                    .filter(p -> p.getEstado() == estado)
+                    .map(PensionDto::fromEntity)
+                    .collect(Collectors.toList());
+            page = new org.springframework.data.domain.PageImpl<>(filtered, pageable, filtered.size());
+        }
         return PageResponse.from(page);
     }
 
@@ -216,7 +225,7 @@ public class PensionService {
     }
 
     public BigDecimal getTotalPendiente(UUID anioEscolarId) {
-        Long count = pensionRepository.countByAnioEscolarIdAndEstado(anioEscolarId, PensionEstado.PENDIENTE);
+        Long count = pensionRepository.countByAnioEscolarIdAndEstado(anioEscolarId, PensionEstado.PENDIENTE.name());
         return BigDecimal.valueOf(count != null ? count : 0);
     }
 

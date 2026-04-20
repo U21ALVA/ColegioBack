@@ -17,17 +17,18 @@ public interface SeccionRepository extends JpaRepository<Seccion, UUID> {
 
     List<Seccion> findByGradoIdOrderByNombreAsc(UUID gradoId);
 
-    List<Seccion> findByGradoIdAndEstado(UUID gradoId, Estado estado);
+    @Query("SELECT s FROM Seccion s WHERE s.grado.id = :gradoId ORDER BY s.nombre ASC")
+    List<Seccion> findByGradoIdActivas(@Param("gradoId") UUID gradoId);
 
     Optional<Seccion> findByNombreAndGrado(String nombre, Grado grado);
 
     @Query("SELECT s FROM Seccion s JOIN FETCH s.grado WHERE s.id = :id")
     Optional<Seccion> findByIdWithGrado(@Param("id") UUID id);
 
-    @Query("SELECT s FROM Seccion s JOIN FETCH s.grado g WHERE s.estado = :estado ORDER BY g.orden ASC, s.nombre ASC")
-    List<Seccion> findAllActiveWithGrado(@Param("estado") Estado estado);
+    @Query("SELECT s FROM Seccion s JOIN FETCH s.grado g ORDER BY g.orden ASC, s.nombre ASC")
+    List<Seccion> findAllActiveWithGrado();
 
-    @Query("SELECT COUNT(a) FROM Alumno a WHERE a.seccion.id = :seccionId AND a.estado = 'ACTIVO'")
+    @Query("SELECT COUNT(a) FROM Alumno a WHERE a.seccion.id = :seccionId")
     Long countAlumnosActivos(@Param("seccionId") UUID seccionId);
 
     boolean existsByNombreAndGradoId(String nombre, UUID gradoId);

@@ -1,7 +1,7 @@
 package pe.edu.colegioricardopalma.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,10 +18,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class ApoderadoService {
+
+    private static final Logger log = LoggerFactory.getLogger(ApoderadoService.class);
 
     private final ApoderadoRepository apoderadoRepository;
     private final AlumnoRepository alumnoRepository;
@@ -29,15 +29,29 @@ public class ApoderadoService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
+    public ApoderadoService(
+            ApoderadoRepository apoderadoRepository,
+            AlumnoRepository alumnoRepository,
+            AlumnoApoderadoRepository alumnoApoderadoRepository,
+            UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder
+    ) {
+        this.apoderadoRepository = apoderadoRepository;
+        this.alumnoRepository = alumnoRepository;
+        this.alumnoApoderadoRepository = alumnoApoderadoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     public List<ApoderadoDto> findAll() {
-        return apoderadoRepository.findByEstado(Estado.ACTIVO)
+        return apoderadoRepository.findActivos()
                 .stream()
                 .map(ApoderadoDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public PageResponse<ApoderadoDto> findAllPaginated(Pageable pageable) {
-        Page<ApoderadoDto> page = apoderadoRepository.findByEstado(Estado.ACTIVO, pageable)
+        Page<ApoderadoDto> page = apoderadoRepository.findActivos(pageable)
                 .map(ApoderadoDto::fromEntity);
         return PageResponse.from(page);
     }
@@ -45,7 +59,6 @@ public class ApoderadoService {
     public PageResponse<ApoderadoDto> search(String search, Pageable pageable) {
         Page<ApoderadoDto> page = apoderadoRepository.searchApoderados(
                 search != null ? search : "",
-                Estado.ACTIVO,
                 pageable
         ).map(ApoderadoDto::fromEntity);
         return PageResponse.from(page);

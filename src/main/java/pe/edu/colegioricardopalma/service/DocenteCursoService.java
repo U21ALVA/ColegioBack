@@ -29,14 +29,14 @@ public class DocenteCursoService {
     private final AnioEscolarRepository anioEscolarRepository;
 
     public List<DocenteCursoDto> findByAnioEscolar(UUID anioEscolarId) {
-        return docenteCursoRepository.findAllByAnioEscolarWithDetails(anioEscolarId, Estado.ACTIVO)
+        return docenteCursoRepository.findAllByAnioEscolarWithDetails(anioEscolarId)
                 .stream()
                 .map(DocenteCursoDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public List<DocenteCursoDto> findByDocenteAndAnioEscolar(UUID docenteId, UUID anioEscolarId) {
-        return docenteCursoRepository.findByDocenteAndAnioEscolarWithDetails(docenteId, anioEscolarId, Estado.ACTIVO)
+        return docenteCursoRepository.findByDocenteAndAnioEscolarWithDetails(docenteId, anioEscolarId)
                 .stream()
                 .map(DocenteCursoDto::fromEntity)
                 .collect(Collectors.toList());
@@ -50,7 +50,7 @@ public class DocenteCursoService {
     }
 
     public PageResponse<DocenteCursoDto> findAllPaginated(UUID anioEscolarId, Pageable pageable) {
-        Page<DocenteCursoDto> page = docenteCursoRepository.findByAnioEscolarIdAndEstado(anioEscolarId, Estado.ACTIVO, pageable)
+        Page<DocenteCursoDto> page = docenteCursoRepository.findActivosByAnioEscolarId(anioEscolarId, pageable)
                 .map(DocenteCursoDto::fromEntity);
         return PageResponse.from(page);
     }
@@ -70,18 +70,24 @@ public class DocenteCursoService {
         Curso curso = cursoRepository.findById(dto.getCursoId())
                 .orElseThrow(() -> new EntityNotFoundException("Curso no encontrado: " + dto.getCursoId()));
 
-        Grado grado = gradoRepository.findById(dto.getGradoId())
-                .orElseThrow(() -> new EntityNotFoundException("Grado no encontrado: " + dto.getGradoId()));
-
         Seccion seccion = seccionRepository.findById(dto.getSeccionId())
                 .orElseThrow(() -> new EntityNotFoundException("Sección no encontrada: " + dto.getSeccionId()));
+
+        UUID gradoId = dto.getGradoId() != null ? dto.getGradoId()
+                : (seccion.getGrado() != null ? seccion.getGrado().getId() : null);
+        if (gradoId == null) {
+            throw new IllegalArgumentException("El grado es requerido");
+        }
+
+        Grado grado = gradoRepository.findById(gradoId)
+                .orElseThrow(() -> new EntityNotFoundException("Grado no encontrado: " + gradoId));
 
         AnioEscolar anioEscolar = anioEscolarRepository.findById(dto.getAnioEscolarId())
                 .orElseThrow(() -> new EntityNotFoundException("Año escolar no encontrado: " + dto.getAnioEscolarId()));
 
         // Check for duplicate assignment
         if (docenteCursoRepository.existsByDocenteIdAndCursoIdAndGradoIdAndSeccionIdAndAnioEscolarId(
-                dto.getDocenteId(), dto.getCursoId(), dto.getGradoId(), dto.getSeccionId(), dto.getAnioEscolarId())) {
+                dto.getDocenteId(), dto.getCursoId(), gradoId, dto.getSeccionId(), dto.getAnioEscolarId())) {
             throw new IllegalArgumentException("Ya existe esta asignación para el año escolar actual");
         }
 

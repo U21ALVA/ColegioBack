@@ -19,24 +19,28 @@ public interface CursoRepository extends JpaRepository<Curso, UUID> {
 
     List<Curso> findByNivelOrderByNombreAsc(Nivel nivel);
 
-    List<Curso> findByNivelAndEstado(Nivel nivel, Estado estado);
+    @Query("SELECT c FROM Curso c WHERE c.nivel = :nivel ORDER BY c.nombre ASC")
+    List<Curso> findByNivelActivos(@Param("nivel") Nivel nivel);
 
-    Page<Curso> findByEstado(Estado estado, Pageable pageable);
+    @Query("SELECT c FROM Curso c")
+    Page<Curso> findActivos(Pageable pageable);
 
-    @Query("SELECT c FROM Curso c WHERE c.estado = :estado ORDER BY c.nivel, c.nombre")
-    List<Curso> findAllActiveOrderByNivelAndNombre(@Param("estado") Estado estado);
+    @Query("SELECT c FROM Curso c ORDER BY c.nivel, c.nombre")
+    List<Curso> findAllActiveOrderByNivelAndNombre();
 
     Optional<Curso> findByNombreAndNivel(String nombre, Nivel nivel);
 
     @Query("SELECT c FROM Curso c WHERE " +
            "(LOWER(c.nombre) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "AND (:nivel IS NULL OR c.nivel = :nivel) " +
-           "AND c.estado = :estado")
-    Page<Curso> searchCursos(
+           "AND c.nivel = :nivel")
+    Page<Curso> searchCursosByNivel(
             @Param("search") String search,
             @Param("nivel") Nivel nivel,
-            @Param("estado") Estado estado,
             Pageable pageable);
+
+    @Query("SELECT c FROM Curso c WHERE " +
+           "(LOWER(c.nombre) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Curso> searchCursos(@Param("search") String search, Pageable pageable);
 
     boolean existsByNombreAndNivel(String nombre, Nivel nivel);
 }

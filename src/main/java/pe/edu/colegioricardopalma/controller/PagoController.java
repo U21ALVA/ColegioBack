@@ -1,6 +1,5 @@
 package pe.edu.colegioricardopalma.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,10 +19,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/pagos")
-@RequiredArgsConstructor
 public class PagoController {
 
     private final PagoService pagoService;
+
+    public PagoController(PagoService pagoService) {
+        this.pagoService = pagoService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

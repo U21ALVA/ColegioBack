@@ -19,17 +19,19 @@ public interface GradoRepository extends JpaRepository<Grado, UUID> {
 
     List<Grado> findByNivelOrderByOrdenAsc(Nivel nivel);
 
-    List<Grado> findByEstadoOrderByOrdenAsc(Estado estado);
+    @Query("SELECT g FROM Grado g ORDER BY g.orden ASC")
+    List<Grado> findActivosOrderByOrdenAsc();
 
-    @Query("SELECT g FROM Grado g WHERE g.estado = :estado ORDER BY g.orden ASC")
-    List<Grado> findAllActiveOrderByOrden(@Param("estado") Estado estado);
+    @Query("SELECT g FROM Grado g ORDER BY g.orden ASC")
+    List<Grado> findAllActiveOrderByOrden();
 
     Optional<Grado> findByNombreAndNivel(String nombre, Nivel nivel);
 
     @Query("SELECT g FROM Grado g LEFT JOIN FETCH g.secciones WHERE g.id = :id")
     Optional<Grado> findByIdWithSecciones(@Param("id") UUID id);
 
-    Page<Grado> findByEstado(Estado estado, Pageable pageable);
+    @Query("SELECT g FROM Grado g")
+    Page<Grado> findActivos(Pageable pageable);
 
     @Query("SELECT g FROM Grado g ORDER BY g.orden ASC")
     List<Grado> findAllOrderByOrden();

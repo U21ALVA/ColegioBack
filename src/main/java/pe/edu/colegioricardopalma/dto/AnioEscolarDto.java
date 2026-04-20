@@ -51,4 +51,8 @@ public class AnioEscolarDto {
                 .activo(this.activo != null ? this.activo : false)
                 .build();
     }
+
+    public String getNombre() {
+        return anio != null ? String.valueOf(anio) : null;
+    }
 }

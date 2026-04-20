@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.edu.colegioricardopalma.dto.CursoDto;
 import pe.edu.colegioricardopalma.dto.PageResponse;
 import pe.edu.colegioricardopalma.entity.Curso;
-import pe.edu.colegioricardopalma.entity.Estado;
 import pe.edu.colegioricardopalma.entity.Nivel;
 import pe.edu.colegioricardopalma.repository.CursoRepository;
 
@@ -26,32 +25,35 @@ public class CursoService {
     private final CursoRepository cursoRepository;
 
     public List<CursoDto> findAll() {
-        return cursoRepository.findAllActiveOrderByNivelAndNombre(Estado.ACTIVO)
+        return cursoRepository.findAllActiveOrderByNivelAndNombre()
                 .stream()
                 .map(CursoDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public List<CursoDto> findByNivel(Nivel nivel) {
-        return cursoRepository.findByNivelAndEstado(nivel, Estado.ACTIVO)
+        return cursoRepository.findByNivelActivos(nivel)
                 .stream()
                 .map(CursoDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     public PageResponse<CursoDto> findAllPaginated(Pageable pageable) {
-        Page<CursoDto> page = cursoRepository.findByEstado(Estado.ACTIVO, pageable)
+        Page<CursoDto> page = cursoRepository.findActivos(pageable)
                 .map(CursoDto::fromEntity);
         return PageResponse.from(page);
     }
 
     public PageResponse<CursoDto> search(String search, Nivel nivel, Pageable pageable) {
-        Page<CursoDto> page = cursoRepository.searchCursos(
-                search != null ? search : "",
-                nivel,
-                Estado.ACTIVO,
-                pageable
-        ).map(CursoDto::fromEntity);
+        String safeSearch = search != null ? search : "";
+        Page<CursoDto> page;
+        if (nivel != null) {
+            page = cursoRepository.searchCursosByNivel(safeSearch, nivel, pageable)
+                    .map(CursoDto::fromEntity);
+        } else {
+            page = cursoRepository.searchCursos(safeSearch, pageable)
+                    .map(CursoDto::fromEntity);
+        }
         return PageResponse.from(page);
     }
 
@@ -102,7 +104,7 @@ public class CursoService {
         Curso curso = cursoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Curso no encontrado: " + id));
 
-        curso.setEstado(Estado.ELIMINADO);
+        curso.setEstado(pe.edu.colegioricardopalma.entity.Estado.ELIMINADO);
         cursoRepository.save(curso);
         log.info("Curso eliminado (soft): {} ({})", curso.getNombre(), curso.getNivel());
     }

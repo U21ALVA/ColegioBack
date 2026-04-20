@@ -10,14 +10,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.colegioricardopalma.dto.DocenteCursoDto;
 import pe.edu.colegioricardopalma.dto.PageResponse;
+import pe.edu.colegioricardopalma.entity.Nivel;
 import pe.edu.colegioricardopalma.service.DocenteCursoService;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/asignaciones")
+@RequestMapping({"/api/asignaciones", "/api/docente-cursos"})
 @RequiredArgsConstructor
 public class DocenteCursoController {
 
@@ -38,6 +40,47 @@ public class DocenteCursoController {
     ) {
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));
         return ResponseEntity.ok(docenteCursoService.findAllPaginated(anioEscolarId, pageable));
+    }
+
+    @GetMapping("/paginated")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PageResponse<DocenteCursoDto>> findAllPaginatedCompat(
+            @RequestParam UUID anioEscolarId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        return ResponseEntity.ok(docenteCursoService.findAllPaginated(anioEscolarId, pageable));
+    }
+
+    @GetMapping("/filter")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PageResponse<DocenteCursoDto>> filterCompat(
+            @RequestParam UUID anioEscolarId,
+            @RequestParam(required = false) UUID docenteId,
+            @RequestParam(required = false) Nivel nivel,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        List<DocenteCursoDto> list = docenteCursoService.findByAnioEscolar(anioEscolarId).stream()
+                .filter(dc -> docenteId == null || (dc.getDocenteId() != null && dc.getDocenteId().equals(docenteId)))
+                .filter(dc -> nivel == null || (dc.getCursoNivel() != null && dc.getCursoNivel().equals(nivel)))
+                .collect(Collectors.toList());
+
+        int start = Math.min(Math.max(page, 0) * Math.max(size, 1), list.size());
+        int end = Math.min(start + Math.max(size, 1), list.size());
+        List<DocenteCursoDto> content = list.subList(start, end);
+
+        PageResponse<DocenteCursoDto> response = PageResponse.<DocenteCursoDto>builder()
+                .content(content)
+                .page(page)
+                .size(size)
+                .totalElements((long) list.size())
+                .totalPages((int) Math.ceil((double) list.size() / Math.max(size, 1)))
+                .first(page <= 0)
+                .last(end >= list.size())
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/docente/{docenteId}/anio-escolar/{anioEscolarId}")

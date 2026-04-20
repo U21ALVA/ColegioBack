@@ -18,15 +18,19 @@ public interface PensionRepository extends JpaRepository<Pension, UUID> {
 
     @Query("SELECT p FROM Pension p " +
            "JOIN FETCH p.alumno a " +
+           "LEFT JOIN FETCH a.grado g " +
+           "LEFT JOIN FETCH a.seccion s " +
            "JOIN FETCH p.anioEscolar ae " +
            "WHERE p.id = :id")
     Optional<Pension> findByIdWithDetails(@Param("id") UUID id);
 
-    @Query("SELECT p FROM Pension p WHERE p.alumno.id = :alumnoId ORDER BY p.mes")
+    @Query("SELECT p FROM Pension p JOIN FETCH p.alumno a LEFT JOIN FETCH a.grado g LEFT JOIN FETCH a.seccion s WHERE p.alumno.id = :alumnoId ORDER BY p.mes")
     List<Pension> findByAlumnoId(@Param("alumnoId") UUID alumnoId);
 
     @Query("SELECT p FROM Pension p " +
            "JOIN FETCH p.alumno a " +
+           "LEFT JOIN FETCH a.grado g " +
+           "LEFT JOIN FETCH a.seccion s " +
            "JOIN FETCH p.anioEscolar ae " +
            "WHERE p.alumno.id = :alumnoId " +
            "AND p.anioEscolar.id = :anioEscolarId " +
@@ -35,41 +39,38 @@ public interface PensionRepository extends JpaRepository<Pension, UUID> {
             @Param("alumnoId") UUID alumnoId,
             @Param("anioEscolarId") UUID anioEscolarId);
 
-    @Query("SELECT p FROM Pension p " +
-           "JOIN FETCH p.alumno a " +
-           "WHERE p.alumno.id = :alumnoId " +
-           "AND p.estado = :estado " +
-           "ORDER BY p.mes")
+    @Query("SELECT p FROM Pension p JOIN FETCH p.alumno a LEFT JOIN FETCH a.grado g LEFT JOIN FETCH a.seccion s WHERE p.alumno.id = :alumnoId " +
+           "AND p.estado = :estado ORDER BY p.mes")
     List<Pension> findByAlumnoIdAndEstado(
             @Param("alumnoId") UUID alumnoId,
             @Param("estado") PensionEstado estado);
 
-    @Query("SELECT p FROM Pension p WHERE p.estado = :estado")
-    List<Pension> findByEstado(@Param("estado") PensionEstado estado);
+    @Query(value = "SELECT p.* FROM pension p WHERE p.estado = CAST(:estado AS pension_estado)",
+            nativeQuery = true)
+    List<Pension> findByEstado(@Param("estado") String estado);
 
     @Query("SELECT p FROM Pension p " +
            "JOIN FETCH p.alumno a " +
+           "LEFT JOIN FETCH a.grado g " +
+           "LEFT JOIN FETCH a.seccion s " +
            "JOIN FETCH p.anioEscolar ae " +
            "WHERE p.anioEscolar.id = :anioEscolarId " +
-           "AND (:mes IS NULL OR p.mes = :mes) " +
-           "AND (:estado IS NULL OR p.estado = :estado)")
+           "AND (:mes IS NULL OR p.mes = :mes)")
     Page<Pension> findWithFilters(
             @Param("anioEscolarId") UUID anioEscolarId,
             @Param("mes") Integer mes,
-            @Param("estado") PensionEstado estado,
             Pageable pageable);
 
     @Query("SELECT p FROM Pension p " +
            "JOIN FETCH p.alumno a " +
-           "LEFT JOIN a.grado g " +
+           "LEFT JOIN FETCH a.grado g " +
+           "LEFT JOIN FETCH a.seccion s " +
            "JOIN FETCH p.anioEscolar ae " +
            "WHERE ae.activo = true " +
            "AND (:mes IS NULL OR p.mes = :mes) " +
-           "AND (:estado IS NULL OR p.estado = :estado) " +
            "AND (:gradoId IS NULL OR a.grado.id = :gradoId)")
     Page<Pension> findActiveWithFilters(
             @Param("mes") Integer mes,
-            @Param("estado") PensionEstado estado,
             @Param("gradoId") UUID gradoId,
             Pageable pageable);
 
@@ -77,10 +78,12 @@ public interface PensionRepository extends JpaRepository<Pension, UUID> {
 
     Optional<Pension> findByAlumnoIdAndAnioEscolarIdAndMes(UUID alumnoId, UUID anioEscolarId, Integer mes);
 
-    @Query("SELECT COUNT(p) FROM Pension p WHERE p.anioEscolar.id = :anioEscolarId AND p.estado = :estado")
+    @Query(value = "SELECT COUNT(p.id) FROM pension p WHERE p.anio_escolar_id = :anioEscolarId " +
+            "AND p.estado = CAST(:estado AS pension_estado)",
+            nativeQuery = true)
     Long countByAnioEscolarIdAndEstado(
             @Param("anioEscolarId") UUID anioEscolarId,
-            @Param("estado") PensionEstado estado);
+            @Param("estado") String estado);
 
     @Query("SELECT COALESCE(SUM(p.montoFinal), 0) FROM Pension p " +
            "WHERE p.anioEscolar.id = :anioEscolarId AND p.estado = 'PAGADO'")
@@ -88,6 +91,9 @@ public interface PensionRepository extends JpaRepository<Pension, UUID> {
 
     @Query("SELECT p FROM Pension p " +
            "JOIN FETCH p.alumno a " +
+           "LEFT JOIN FETCH a.grado g " +
+           "LEFT JOIN FETCH a.seccion s " +
+           "JOIN FETCH p.anioEscolar ae " +
            "WHERE a.id IN :alumnoIds " +
            "AND p.estado IN ('PENDIENTE', 'VENCIDO', 'PARCIAL') " +
            "ORDER BY a.apellidos, a.nombres, p.mes")
