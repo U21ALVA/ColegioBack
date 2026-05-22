@@ -24,7 +24,7 @@ public class BimestreService {
     private final AnioEscolarRepository anioEscolarRepository;
 
     public List<BimestreDto> findByAnioEscolar(UUID anioEscolarId) {
-        return bimestreRepository.findByAnioEscolarIdOrderByNumeroAsc(anioEscolarId)
+        return bimestreRepository.findByAnioEscolarIdWithAnioEscolarOrderByNumeroAsc(anioEscolarId)
                 .stream()
                 .map(BimestreDto::fromEntity)
                 .collect(Collectors.toList());

@@ -26,20 +26,35 @@ public interface NotaHistorialRepository extends JpaRepository<NotaHistorial, UU
            "JOIN FETCH nh.nota n " +
            "JOIN FETCH n.alumno a " +
            "JOIN FETCH n.curso c " +
+           "JOIN FETCH n.bimestre b " +
+           "LEFT JOIN FETCH n.docente d " +
            "LEFT JOIN FETCH nh.usuario u " +
            "WHERE nh.nota.id = :notaId " +
            "ORDER BY nh.createdAt DESC")
     List<NotaHistorial> findByNotaIdWithDetails(@Param("notaId") UUID notaId);
 
     // Paginated search with filters
-    @Query("SELECT nh FROM NotaHistorial nh " +
-           "JOIN nh.nota n " +
+    @Query(value = "SELECT nh FROM NotaHistorial nh " +
+           "JOIN FETCH nh.nota n " +
+           "JOIN FETCH n.alumno a " +
+           "JOIN FETCH n.curso c " +
+           "JOIN FETCH n.bimestre b " +
+           "LEFT JOIN FETCH n.docente d " +
+           "LEFT JOIN FETCH nh.usuario u " +
            "WHERE (:notaId IS NULL OR nh.nota.id = :notaId) " +
            "AND (:usuarioId IS NULL OR nh.usuario.id = :usuarioId) " +
            "AND (:cursoId IS NULL OR n.curso.id = :cursoId) " +
            "AND (:docenteId IS NULL OR n.docente.id = :docenteId) " +
            "AND (:desde IS NULL OR nh.createdAt >= :desde) " +
-           "AND (:hasta IS NULL OR nh.createdAt <= :hasta)")
+           "AND (:hasta IS NULL OR nh.createdAt <= :hasta)",
+           countQuery = "SELECT COUNT(nh) FROM NotaHistorial nh " +
+                   "JOIN nh.nota n " +
+                   "WHERE (:notaId IS NULL OR nh.nota.id = :notaId) " +
+                   "AND (:usuarioId IS NULL OR nh.usuario.id = :usuarioId) " +
+                   "AND (:cursoId IS NULL OR n.curso.id = :cursoId) " +
+                   "AND (:docenteId IS NULL OR n.docente.id = :docenteId) " +
+                   "AND (:desde IS NULL OR nh.createdAt >= :desde) " +
+                   "AND (:hasta IS NULL OR nh.createdAt <= :hasta)")
     Page<NotaHistorial> findWithFilters(
             @Param("notaId") UUID notaId,
             @Param("usuarioId") UUID usuarioId,
@@ -53,6 +68,9 @@ public interface NotaHistorialRepository extends JpaRepository<NotaHistorial, UU
     @Query("SELECT nh FROM NotaHistorial nh " +
            "JOIN FETCH nh.nota n " +
            "JOIN FETCH n.alumno a " +
+           "JOIN FETCH n.curso c " +
+           "JOIN FETCH n.bimestre b " +
+           "LEFT JOIN FETCH n.docente d " +
            "LEFT JOIN FETCH nh.usuario u " +
            "WHERE n.curso.id = :cursoId " +
            "ORDER BY nh.createdAt DESC")
@@ -63,12 +81,25 @@ public interface NotaHistorialRepository extends JpaRepository<NotaHistorial, UU
            "JOIN FETCH nh.nota n " +
            "JOIN FETCH n.alumno a " +
            "JOIN FETCH n.curso c " +
+           "JOIN FETCH n.bimestre b " +
+           "LEFT JOIN FETCH n.docente d " +
            "LEFT JOIN FETCH nh.usuario u " +
            "WHERE nh.createdAt BETWEEN :desde AND :hasta " +
            "ORDER BY nh.createdAt DESC")
     List<NotaHistorial> findByDateRange(
             @Param("desde") LocalDateTime desde,
             @Param("hasta") LocalDateTime hasta);
+
+    @Query("SELECT nh FROM NotaHistorial nh " +
+           "JOIN FETCH nh.nota n " +
+           "JOIN FETCH n.alumno a " +
+           "JOIN FETCH n.curso c " +
+           "JOIN FETCH n.bimestre b " +
+           "LEFT JOIN FETCH n.docente d " +
+           "LEFT JOIN FETCH nh.usuario u " +
+           "WHERE n.alumno.id = :alumnoId " +
+           "ORDER BY nh.createdAt DESC")
+    List<NotaHistorial> findByAlumnoIdWithDetails(@Param("alumnoId") UUID alumnoId);
 
     // Count changes by docente
     @Query("SELECT COUNT(nh) FROM NotaHistorial nh " +

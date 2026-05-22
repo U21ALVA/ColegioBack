@@ -15,6 +15,9 @@ public interface BimestreRepository extends JpaRepository<Bimestre, UUID> {
 
     List<Bimestre> findByAnioEscolarIdOrderByNumeroAsc(UUID anioEscolarId);
 
+    @Query("SELECT b FROM Bimestre b JOIN FETCH b.anioEscolar a WHERE a.id = :anioEscolarId ORDER BY b.numero ASC")
+    List<Bimestre> findByAnioEscolarIdWithAnioEscolarOrderByNumeroAsc(@Param("anioEscolarId") UUID anioEscolarId);
+
     Optional<Bimestre> findByNumeroAndAnioEscolarId(Integer numero, UUID anioEscolarId);
 
     @Query("SELECT b FROM Bimestre b JOIN FETCH b.anioEscolar WHERE b.id = :id")

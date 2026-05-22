@@ -94,6 +94,9 @@ public class NotaController {
             @PathVariable UUID id,
             @Valid @RequestBody NotaCreateRequest request
     ) {
+        if (request.getJustificacion() == null || request.getJustificacion().trim().isEmpty()) {
+            throw new IllegalArgumentException("La justificacion es obligatoria para modificar notas");
+        }
         return ResponseEntity.ok(notaService.update(id, request));
     }
 
@@ -103,6 +106,9 @@ public class NotaController {
             @Valid @RequestBody NotaBulkRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
+        if (request.getJustificacion() == null || request.getJustificacion().trim().isEmpty()) {
+            throw new IllegalArgumentException("La justificacion es obligatoria para modificar notas");
+        }
         UUID docenteId = getDocenteIdFromUser(userDetails);
         List<NotaDto> results = notaService.bulkCreateOrUpdate(request, docenteId);
         return ResponseEntity.ok(results);

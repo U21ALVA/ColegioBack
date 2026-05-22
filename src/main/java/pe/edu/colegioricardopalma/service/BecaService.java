@@ -13,10 +13,14 @@ import pe.edu.colegioricardopalma.dto.PageResponse;
 import pe.edu.colegioricardopalma.entity.Alumno;
 import pe.edu.colegioricardopalma.entity.AnioEscolar;
 import pe.edu.colegioricardopalma.entity.Beca;
+import pe.edu.colegioricardopalma.entity.Pension;
+import pe.edu.colegioricardopalma.entity.PensionEstado;
 import pe.edu.colegioricardopalma.entity.Usuario;
 import pe.edu.colegioricardopalma.repository.*;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,6 +34,7 @@ public class BecaService {
     private final AlumnoRepository alumnoRepository;
     private final AnioEscolarRepository anioEscolarRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PensionRepository pensionRepository;
 
     public List<BecaDto> findAll() {
         return becaRepository.findAll().stream()
@@ -91,6 +96,7 @@ public class BecaService {
                 .build();
 
         Beca saved = becaRepository.save(beca);
+        recalcularPensionesAlumnoAnio(alumno.getId(), anioEscolar.getId());
         log.info("Beca {} creada para alumno {} - {}%", 
                 request.getTipo(), alumno.getNombreCompleto(), request.getPorcentaje());
 
@@ -107,6 +113,7 @@ public class BecaService {
         beca.setMotivo(request.getMotivo());
 
         Beca saved = becaRepository.save(beca);
+        recalcularPensionesAlumnoAnio(beca.getAlumno().getId(), beca.getAnioEscolar().getId());
         log.info("Beca {} actualizada", id);
 
         return BecaDto.fromEntity(saved);
@@ -119,6 +126,7 @@ public class BecaService {
 
         beca.setVigente(!beca.getVigente());
         Beca saved = becaRepository.save(beca);
+        recalcularPensionesAlumnoAnio(beca.getAlumno().getId(), beca.getAnioEscolar().getId());
         log.info("Beca {} cambiada a vigente={}", id, saved.getVigente());
 
         return BecaDto.fromEntity(saved);
@@ -126,11 +134,31 @@ public class BecaService {
 
     @Transactional
     public void delete(UUID id) {
-        if (!becaRepository.existsById(id)) {
-            throw new EntityNotFoundException("Beca no encontrada: " + id);
-        }
+        Beca beca = becaRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new EntityNotFoundException("Beca no encontrada: " + id));
+        UUID alumnoId = beca.getAlumno().getId();
+        UUID anioId = beca.getAnioEscolar().getId();
+
         becaRepository.deleteById(id);
+        recalcularPensionesAlumnoAnio(alumnoId, anioId);
         log.info("Beca eliminada: {}", id);
+    }
+
+    private void recalcularPensionesAlumnoAnio(UUID alumnoId, UUID anioEscolarId) {
+        BigDecimal porcentaje = becaRepository.sumPorcentajeVigenteByAlumnoAndAnioEscolar(alumnoId, anioEscolarId);
+        BigDecimal factor = (porcentaje == null ? BigDecimal.ZERO : porcentaje)
+                .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+
+        List<Pension> pensiones = pensionRepository.findByAlumnoIdAndAnioEscolarId(alumnoId, anioEscolarId);
+        for (Pension p : pensiones) {
+            if (p.getEstado() == PensionEstado.PAGADO) {
+                continue;
+            }
+            BigDecimal descuento = p.getMonto().multiply(factor).setScale(2, RoundingMode.HALF_UP);
+            p.setDescuento(descuento);
+            p.calcularMontoFinal();
+        }
+        pensionRepository.saveAll(pensiones);
     }
 
     private Usuario getCurrentUsuario() {

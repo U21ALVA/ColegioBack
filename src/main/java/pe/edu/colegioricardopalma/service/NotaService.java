@@ -139,10 +139,10 @@ public class NotaService {
         Usuario usuario = getCurrentUsuario();
 
         // Log changes
-        logGradeChange(nota, "n1", nota.getN1(), request.getN1(), usuario);
-        logGradeChange(nota, "n2", nota.getN2(), request.getN2(), usuario);
-        logGradeChange(nota, "n3", nota.getN3(), request.getN3(), usuario);
-        logGradeChange(nota, "n4", nota.getN4(), request.getN4(), usuario);
+        logGradeChange(nota, "n1", nota.getN1(), request.getN1(), usuario, request.getJustificacion());
+        logGradeChange(nota, "n2", nota.getN2(), request.getN2(), usuario, request.getJustificacion());
+        logGradeChange(nota, "n3", nota.getN3(), request.getN3(), usuario, request.getJustificacion());
+        logGradeChange(nota, "n4", nota.getN4(), request.getN4(), usuario, request.getJustificacion());
 
         // Update grades
         nota.setN1(request.getN1());
@@ -200,10 +200,10 @@ public class NotaService {
 
             if (nota != null) {
                 // Update existing
-                logGradeChange(nota, "n1", nota.getN1(), notaRequest.getN1(), usuario);
-                logGradeChange(nota, "n2", nota.getN2(), notaRequest.getN2(), usuario);
-                logGradeChange(nota, "n3", nota.getN3(), notaRequest.getN3(), usuario);
-                logGradeChange(nota, "n4", nota.getN4(), notaRequest.getN4(), usuario);
+                logGradeChange(nota, "n1", nota.getN1(), notaRequest.getN1(), usuario, request.getJustificacion());
+                logGradeChange(nota, "n2", nota.getN2(), notaRequest.getN2(), usuario, request.getJustificacion());
+                logGradeChange(nota, "n3", nota.getN3(), notaRequest.getN3(), usuario, request.getJustificacion());
+                logGradeChange(nota, "n4", nota.getN4(), notaRequest.getN4(), usuario, request.getJustificacion());
 
                 nota.setN1(notaRequest.getN1());
                 nota.setN2(notaRequest.getN2());
@@ -288,12 +288,15 @@ public class NotaService {
         }
     }
 
-    private void logGradeChange(Nota nota, String campo, BigDecimal valorAnterior, BigDecimal valorNuevo, Usuario usuario) {
+    private void logGradeChange(Nota nota, String campo, BigDecimal valorAnterior, BigDecimal valorNuevo, Usuario usuario, String justificacion) {
         if (valorAnterior == null && valorNuevo == null) {
             return;
         }
         if (valorAnterior != null && valorAnterior.equals(valorNuevo)) {
             return;
+        }
+        if (justificacion == null || justificacion.trim().isEmpty()) {
+            throw new IllegalArgumentException("La justificacion es obligatoria para modificar notas");
         }
 
         NotaHistorial historial = NotaHistorial.builder()
@@ -301,6 +304,7 @@ public class NotaService {
                 .campoModificado(campo)
                 .valorAnterior(valorAnterior != null ? valorAnterior.toString() : null)
                 .valorNuevo(valorNuevo != null ? valorNuevo.toString() : null)
+                .motivo(justificacion.trim())
                 .usuario(usuario)
                 .build();
 
@@ -315,4 +319,5 @@ public class NotaService {
             return null;
         }
     }
+
 }

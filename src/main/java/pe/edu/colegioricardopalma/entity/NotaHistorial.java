@@ -33,6 +33,9 @@ public class NotaHistorial {
     @Column(name = "valor_nuevo", length = 10)
     private String valorNuevo;
 
+    @Column(name = "motivo")
+    private String motivo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;

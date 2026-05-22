@@ -7,10 +7,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.colegioricardopalma.dto.NotaHistorialDto;
 import pe.edu.colegioricardopalma.dto.PageResponse;
+import pe.edu.colegioricardopalma.entity.Usuario;
 import pe.edu.colegioricardopalma.repository.NotaHistorialRepository;
+import pe.edu.colegioricardopalma.repository.UsuarioRepository;
+import pe.edu.colegioricardopalma.service.BoletaService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +30,8 @@ import java.util.stream.Collectors;
 public class NotaHistorialController {
 
     private final NotaHistorialRepository notaHistorialRepository;
+    private final BoletaService boletaService;
+    private final UsuarioRepository usuarioRepository;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -84,5 +91,51 @@ public class NotaHistorialController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(historial);
+    }
+
+    @GetMapping("/alumno/{alumnoId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESOR', 'PADRE')")
+    public ResponseEntity<List<NotaHistorialDto>> findByAlumno(
+            @PathVariable UUID alumnoId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        if (isPadre(userDetails)) {
+            validatePadreAccess(userDetails, alumnoId);
+        }
+
+        List<NotaHistorialDto> historial = notaHistorialRepository.findByAlumnoIdWithDetails(alumnoId).stream()
+                .map(NotaHistorialDto::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(historial);
+    }
+
+    private boolean isPadre(UserDetails userDetails) {
+        return userDetails != null && userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_PADRE"));
+    }
+
+    private void validatePadreAccess(UserDetails userDetails, UUID alumnoId) {
+        UUID apoderadoId = getApoderadoIdFromUser(userDetails);
+        if (apoderadoId == null) {
+            throw new SecurityException("Apoderado no encontrado");
+        }
+
+        if (!boletaService.isApoderadoOfAlumno(apoderadoId, alumnoId)) {
+            throw new SecurityException("No tiene permiso para ver el historial de este alumno");
+        }
+    }
+
+    private UUID getApoderadoIdFromUser(UserDetails userDetails) {
+        if (userDetails == null) {
+            return null;
+        }
+
+        Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername()).orElse(null);
+        if (usuario == null) {
+            return null;
+        }
+
+        return boletaService.getApoderadoIdByUsuarioId(usuario.getId());
     }
 }

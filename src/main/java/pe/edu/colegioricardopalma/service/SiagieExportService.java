@@ -7,6 +7,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import com.lowagie.text.Document;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -50,7 +59,7 @@ public class SiagieExportService {
     @Value("${siagie.template-path:/home/alva/Documentos/ColegioRP/PLantilla siagie.xlsx}")
     private String templatePath;
 
-    @Value("${siagie.storage-dir:backend/storage/siagie}")
+    @Value("${siagie.storage-dir:/tmp/siagie}")
     private String storageDir;
 
     @Transactional
@@ -83,18 +92,32 @@ public class SiagieExportService {
 
         String periodo = "Bimestre " + bimestre.getNumero() + " - Año " + anioEscolar.getAnio();
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        String fileName = "siagie_" + anioEscolar.getAnio() + "_b" + bimestre.getNumero() + "_" + time + ".xlsx";
+        String formato = request.getFormato() != null ? request.getFormato().toUpperCase() : "XLSX";
+        String extension = switch (formato) {
+            case "CSV" -> "csv";
+            case "PDF" -> "pdf";
+            default -> "xlsx";
+        };
+        String fileName = "siagie_" + anioEscolar.getAnio() + "_b" + bimestre.getNumero() + "_" + time + "." + extension;
 
         Path dir = Paths.get(storageDir);
         Path targetFile = dir.resolve(fileName);
 
+        List<CursoNotasData> cursosData = buildCursosData(cursosSeleccionados, alumnos, bimestre.getId());
+
         try {
             Files.createDirectories(dir);
-            try (Workbook workbook = loadTemplateWorkbook()) {
-                fillGeneralidades(workbook, config, request, anioEscolar, bimestre, nombresCursos);
-                fillCursos(workbook, cursosSeleccionados, alumnos, bimestre.getId());
-                try (OutputStream os = Files.newOutputStream(targetFile)) {
-                    workbook.write(os);
+            switch (formato) {
+                case "CSV" -> generateCsv(targetFile, config, request, anioEscolar, bimestre, cursosData);
+                case "PDF" -> generatePdf(targetFile, config, request, anioEscolar, bimestre, cursosData);
+                default -> {
+                    try (Workbook workbook = loadTemplateWorkbook()) {
+                        fillGeneralidades(workbook, config, request, anioEscolar, bimestre, nombresCursos);
+                        fillCursos(workbook, cursosSeleccionados, alumnos, bimestre.getId());
+                        try (OutputStream os = Files.newOutputStream(targetFile)) {
+                            workbook.write(os);
+                        }
+                    }
                 }
             }
         } catch (IOException e) {
@@ -103,6 +126,7 @@ public class SiagieExportService {
 
         ExportacionSiagie exportacion = ExportacionSiagie.builder()
                 .tipo(request.getTipo())
+                .formato(formato)
                 .periodo(periodo)
                 .archivoUrl(fileName)
                 .usuario(usuario)
@@ -134,7 +158,108 @@ public class SiagieExportService {
             throw new EntityNotFoundException("Archivo de exportación no encontrado en storage");
         }
 
-        return new ExportFileData(filePath, exportacion.getArchivoUrl());
+        String contentType = switch ((exportacion.getFormato() != null ? exportacion.getFormato() : "XLSX").toUpperCase()) {
+            case "CSV" -> "text/csv";
+            case "PDF" -> "application/pdf";
+            default -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        };
+
+        return new ExportFileData(filePath, exportacion.getArchivoUrl(), contentType);
+    }
+
+    private List<CursoNotasData> buildCursosData(List<Curso> cursos, List<Alumno> alumnos, UUID bimestreId) {
+        List<UUID> alumnoIds = alumnos.stream().map(Alumno::getId).toList();
+        List<CursoNotasData> out = new ArrayList<>();
+        for (Curso curso : cursos) {
+            List<Nota> notas = alumnoIds.isEmpty()
+                    ? List.of()
+                    : notaRepository.findByCursoBimestreAndAlumnoIdsWithAlumno(curso.getId(), bimestreId, alumnoIds);
+            Map<UUID, Nota> notaPorAlumno = notas.stream()
+                    .collect(Collectors.toMap(n -> n.getAlumno().getId(), n -> n, (a, b) -> a));
+            out.add(new CursoNotasData(curso, notaPorAlumno, alumnos));
+        }
+        return out;
+    }
+
+    private void generateCsv(Path file, ConfiguracionSiagie config, SiagieExportRequest request,
+                             AnioEscolar anioEscolar, Bimestre bimestre, List<CursoNotasData> cursosData) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("INSTITUCION,").append(escapeCsv(config.getInstitucionEducativa())).append("\n");
+        sb.append("CODIGO_MODULAR,").append(escapeCsv(config.getCodigoModularAnexo())).append("\n");
+        sb.append("NIVEL,").append(escapeCsv(config.getNivel())).append("\n");
+        sb.append("ANIO,").append(anioEscolar.getAnio()).append("\n");
+        sb.append("BIMESTRE,").append(bimestre.getNumero()).append("\n\n");
+
+        for (CursoNotasData data : cursosData) {
+            sb.append("CURSO,").append(escapeCsv(data.curso().getNombre())).append("\n");
+            sb.append("NRO,CODIGO,ALUMNO,N1,N2,N3,N4,FINAL\n");
+            int i = 1;
+            for (Alumno alumno : data.alumnos()) {
+                Nota n = data.notaPorAlumno().get(alumno.getId());
+                sb.append(i++).append(',')
+                        .append(escapeCsv(safe(alumno.getCodigoEstudiante()))).append(',')
+                        .append(escapeCsv(alumno.getApellidos() + " " + alumno.getNombres())).append(',')
+                        .append(n != null && n.getN1() != null ? n.getN1() : "").append(',')
+                        .append(n != null && n.getN2() != null ? n.getN2() : "").append(',')
+                        .append(n != null && n.getN3() != null ? n.getN3() : "").append(',')
+                        .append(n != null && n.getN4() != null ? n.getN4() : "").append(',')
+                        .append(n != null && n.getNotaFinal() != null ? n.getNotaFinal() : "")
+                        .append("\n");
+            }
+            sb.append("\n");
+        }
+
+        Files.writeString(file, sb.toString());
+    }
+
+    private void generatePdf(Path file, ConfiguracionSiagie config, SiagieExportRequest request,
+                             AnioEscolar anioEscolar, Bimestre bimestre, List<CursoNotasData> cursosData) throws IOException {
+        Document doc = new Document(PageSize.A4.rotate(), 24, 24, 24, 24);
+        try {
+            PdfWriter.getInstance(doc, Files.newOutputStream(file));
+            doc.open();
+
+            Font title = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14);
+            Font subtitle = FontFactory.getFont(FontFactory.HELVETICA, 10);
+
+            doc.add(new Paragraph("REPORTE INSTITUCIONAL SIAGIE", title));
+            doc.add(new Paragraph(config.getInstitucionEducativa(), subtitle));
+            doc.add(new Paragraph("Año: " + anioEscolar.getAnio() + " | Bimestre: " + bimestre.getNumero(), subtitle));
+            doc.add(new Paragraph(" "));
+
+            for (CursoNotasData data : cursosData) {
+                doc.add(new Paragraph("Curso: " + data.curso().getNombre(), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11)));
+                PdfPTable table = new PdfPTable(new float[]{1.2f, 2f, 4f, 1f, 1f, 1f, 1f, 1f});
+                table.setWidthPercentage(100);
+                for (String h : List.of("N°", "Código", "Alumno", "N1", "N2", "N3", "N4", "Final")) {
+                    PdfPCell cell = new PdfPCell(new Phrase(h, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9)));
+                    table.addCell(cell);
+                }
+                int i = 1;
+                for (Alumno alumno : data.alumnos()) {
+                    Nota n = data.notaPorAlumno().get(alumno.getId());
+                    table.addCell(String.valueOf(i++));
+                    table.addCell(safe(alumno.getCodigoEstudiante()));
+                    table.addCell(alumno.getApellidos() + " " + alumno.getNombres());
+                    table.addCell(n != null && n.getN1() != null ? String.valueOf(n.getN1()) : "-");
+                    table.addCell(n != null && n.getN2() != null ? String.valueOf(n.getN2()) : "-");
+                    table.addCell(n != null && n.getN3() != null ? String.valueOf(n.getN3()) : "-");
+                    table.addCell(n != null && n.getN4() != null ? String.valueOf(n.getN4()) : "-");
+                    table.addCell(n != null && n.getNotaFinal() != null ? String.valueOf(n.getNotaFinal()) : "-");
+                }
+                doc.add(table);
+                doc.add(new Paragraph(" "));
+            }
+        } catch (Exception e) {
+            throw new IOException("Error al generar PDF SIAGIE", e);
+        } finally {
+            doc.close();
+        }
+    }
+
+    private String escapeCsv(String value) {
+        String v = value == null ? "" : value;
+        return '"' + v.replace("\"", "\"\"") + '"';
     }
 
     public List<CursoDto> cursosDisponibles() {
@@ -335,5 +460,8 @@ public class SiagieExportService {
     public static class ExportFileData {
         private Path filePath;
         private String fileName;
+        private String contentType;
     }
+
+    private record CursoNotasData(Curso curso, Map<UUID, Nota> notaPorAlumno, List<Alumno> alumnos) {}
 }

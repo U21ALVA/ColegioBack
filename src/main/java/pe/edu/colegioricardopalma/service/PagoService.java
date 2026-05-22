@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.edu.colegioricardopalma.dto.PageResponse;
 import pe.edu.colegioricardopalma.dto.PagoDto;
+import pe.edu.colegioricardopalma.dto.PagoManualRequest;
 import pe.edu.colegioricardopalma.entity.Pago;
 import pe.edu.colegioricardopalma.entity.PagoEstado;
 import pe.edu.colegioricardopalma.entity.Pension;
@@ -131,6 +132,40 @@ public class PagoService {
         return PagoDto.fromEntity(saved);
     }
 
+    @Transactional
+    public PagoDto registrarPagoManual(PagoManualRequest request) {
+        Pension pension = pensionRepository.findByIdWithDetails(request.pensionId())
+                .orElseThrow(() -> new EntityNotFoundException("Pensión no encontrada: " + request.pensionId()));
+
+        if (pension.getEstado() == PensionEstado.PAGADO) {
+            throw new IllegalStateException("La pensión ya se encuentra pagada");
+        }
+
+        BigDecimal monto = request.monto() != null ? request.monto() : pension.getMontoFinal();
+        if (monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El monto debe ser mayor a 0");
+        }
+
+        String metodoPago = normalizeMetodoPago(request.metodoPago());
+
+        Pago pago = Pago.builder()
+                .pension(pension)
+                .monto(monto)
+                .estado(PagoEstado.COMPLETADO)
+                .metodoPago(metodoPago)
+                .fechaPago(LocalDateTime.now())
+                .metadata(Map.of("origen", "manual_tesoreria"))
+                .build();
+
+        Pago saved = pagoRepository.save(pago);
+
+        pension.setEstado(PensionEstado.PAGADO);
+        pensionRepository.save(pension);
+
+        log.info("Pago manual registrado para pensión {} por monto {} con método {}", pension.getId(), monto, metodoPago);
+        return PagoDto.fromEntity(saved);
+    }
+
     public BigDecimal getTotalRecaudado(LocalDateTime desde, LocalDateTime hasta) {
         return pagoRepository.sumMontoByFechaRange(desde, hasta);
     }
@@ -141,5 +176,22 @@ public class PagoService {
 
     public Long countCompletadosAnioEscolar(UUID anioEscolarId) {
         return pagoRepository.countCompletadosByAnioEscolar(anioEscolarId);
+    }
+
+    public BigDecimal getTotalEfectivoAnioEscolar(UUID anioEscolarId) {
+        return pagoRepository.sumMontoCompletadoEfectivoByAnioEscolar(anioEscolarId);
+    }
+
+    public BigDecimal getTotalTarjetaAnioEscolar(UUID anioEscolarId) {
+        return pagoRepository.sumMontoCompletadoTarjetaByAnioEscolar(anioEscolarId);
+    }
+
+    private String normalizeMetodoPago(String metodoPago) {
+        String normalized = metodoPago == null ? "" : metodoPago.trim().toLowerCase();
+        return switch (normalized) {
+            case "tarjeta", "card", "stripe" -> "card";
+            case "efectivo", "cash" -> "efectivo";
+            default -> normalized;
+        };
     }
 }

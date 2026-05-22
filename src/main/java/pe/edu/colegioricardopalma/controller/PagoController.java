@@ -1,5 +1,6 @@
 package pe.edu.colegioricardopalma.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -8,11 +9,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.colegioricardopalma.dto.PageResponse;
 import pe.edu.colegioricardopalma.dto.PagoDto;
+import pe.edu.colegioricardopalma.dto.PagoManualRequest;
 import pe.edu.colegioricardopalma.entity.PagoEstado;
 import pe.edu.colegioricardopalma.service.PagoService;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -63,10 +64,26 @@ public class PagoController {
                 ? pagoService.countCompletadosAnioEscolar(anioEscolarId)
                 : 0L;
 
+        BigDecimal totalEfectivo = anioEscolarId != null
+                ? pagoService.getTotalEfectivoAnioEscolar(anioEscolarId)
+                : BigDecimal.ZERO;
+
+        BigDecimal totalTarjeta = anioEscolarId != null
+                ? pagoService.getTotalTarjetaAnioEscolar(anioEscolarId)
+                : BigDecimal.ZERO;
+
         return ResponseEntity.ok(Map.of(
                 "totalRecaudado", totalRecaudado,
-                "cantidadPagos", cantidadPagos
+                "cantidadPagos", cantidadPagos,
+                "totalEfectivo", totalEfectivo,
+                "totalTarjeta", totalTarjeta
         ));
+    }
+
+    @PostMapping("/manual")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PagoDto> registrarPagoManual(@Valid @RequestBody PagoManualRequest request) {
+        return ResponseEntity.ok(pagoService.registrarPagoManual(request));
     }
 
     @PutMapping("/{id}/estado")

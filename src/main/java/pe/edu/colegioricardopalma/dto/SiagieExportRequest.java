@@ -30,4 +30,7 @@ public class SiagieExportRequest {
 
     @NotBlank(message = "El tipo es requerido")
     private String tipo;
+
+    // XLSX (default), CSV, PDF
+    private String formato;
 }

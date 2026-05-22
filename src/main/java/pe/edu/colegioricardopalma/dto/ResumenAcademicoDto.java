@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import pe.edu.colegioricardopalma.entity.LiteralNota;
+import pe.edu.colegioricardopalma.entity.Nivel;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,6 +26,7 @@ public class ResumenAcademicoDto {
     private String alumnoApellidos;
     private String alumnoCodigo;
     private String gradoNombre;
+    private Nivel nivel;
     private String seccionNombre;
     
     private Integer anioEscolar;

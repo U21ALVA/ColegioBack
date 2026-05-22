@@ -78,7 +78,7 @@ public class SiagieController {
         String encoded = URLEncoder.encode(data.getFileName(), StandardCharsets.UTF_8);
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(MediaType.parseMediaType(data.getContentType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + data.getFileName() + "\"; filename*=UTF-8''" + encoded)
                 .body(resource);
     }

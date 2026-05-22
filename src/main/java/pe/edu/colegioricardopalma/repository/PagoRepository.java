@@ -63,4 +63,25 @@ public interface PagoRepository extends JpaRepository<Pago, UUID> {
             "WHERE p.estado = CAST('COMPLETADO' AS pago_estado) AND pe.anio_escolar_id = :anioEscolarId",
             nativeQuery = true)
     java.math.BigDecimal sumMontoCompletadoByAnioEscolar(@Param("anioEscolarId") UUID anioEscolarId);
+
+    @Query(value = "SELECT COALESCE(SUM(p.monto), 0) FROM pago p JOIN pension pe ON pe.id = p.pension_id " +
+            "WHERE p.estado = CAST('COMPLETADO' AS pago_estado) " +
+            "AND pe.anio_escolar_id = :anioEscolarId " +
+            "AND LOWER(COALESCE(p.metodo_pago, '')) = 'efectivo'",
+            nativeQuery = true)
+    java.math.BigDecimal sumMontoCompletadoEfectivoByAnioEscolar(@Param("anioEscolarId") UUID anioEscolarId);
+
+    @Query(value = "SELECT COALESCE(SUM(p.monto), 0) FROM pago p JOIN pension pe ON pe.id = p.pension_id " +
+            "WHERE p.estado = CAST('COMPLETADO' AS pago_estado) " +
+            "AND pe.anio_escolar_id = :anioEscolarId " +
+            "AND LOWER(COALESCE(p.metodo_pago, '')) IN ('card', 'tarjeta')",
+            nativeQuery = true)
+    java.math.BigDecimal sumMontoCompletadoTarjetaByAnioEscolar(@Param("anioEscolarId") UUID anioEscolarId);
+
+    @Query("SELECT p FROM Pago p " +
+           "JOIN FETCH p.pension pe " +
+           "JOIN FETCH pe.alumno a " +
+           "WHERE p.estado = 'COMPLETADO' " +
+           "ORDER BY COALESCE(p.fechaPago, p.createdAt) DESC")
+    List<Pago> findRecentCompleted(Pageable pageable);
 }

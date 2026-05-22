@@ -41,4 +41,6 @@ public class NotaCreateRequest {
     @DecimalMin(value = "0", message = "La nota n4 debe ser mayor o igual a 0")
     @DecimalMax(value = "20", message = "La nota n4 debe ser menor o igual a 20")
     private BigDecimal n4;
+
+    private String justificacion;
 }

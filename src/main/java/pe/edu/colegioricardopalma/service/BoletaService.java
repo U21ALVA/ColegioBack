@@ -250,6 +250,7 @@ public class BoletaService {
                 .alumnoApellidos(alumno.getApellidos())
                 .alumnoCodigo(alumno.getCodigoEstudiante())
                 .gradoNombre(alumno.getGrado() != null ? alumno.getGrado().getNombre() : null)
+                .nivel(alumno.getGrado() != null ? alumno.getGrado().getNivel() : null)
                 .seccionNombre(alumno.getSeccion() != null ? alumno.getSeccion().getNombre() : null)
                 .anioEscolar(anioEscolar.getAnio())
                 .bimestreActual(bimestreActual)

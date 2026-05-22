@@ -17,6 +17,7 @@ public class ExportacionSiagieDto {
 
     private UUID id;
     private String tipo;
+    private String formato;
     private String periodo;
     private String archivoUrl;
     private UUID usuarioId;
@@ -29,6 +30,7 @@ public class ExportacionSiagieDto {
         return ExportacionSiagieDto.builder()
                 .id(entity.getId())
                 .tipo(entity.getTipo())
+                .formato(entity.getFormato())
                 .periodo(entity.getPeriodo())
                 .archivoUrl(entity.getArchivoUrl())
                 .usuarioId(entity.getUsuario() != null ? entity.getUsuario().getId() : null)

@@ -27,6 +27,8 @@ public class NotaBulkRequest {
     @Valid
     private List<NotaAlumnoRequest> notas;
 
+    private String justificacion;
+
     @Data
     @Builder
     @NoArgsConstructor

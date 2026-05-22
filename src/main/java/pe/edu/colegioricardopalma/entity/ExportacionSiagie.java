@@ -23,6 +23,10 @@ public class ExportacionSiagie {
     @Column(name = "tipo", nullable = false, length = 50)
     private String tipo;
 
+    @Column(name = "formato", nullable = false, length = 20)
+    @Builder.Default
+    private String formato = "XLSX";
+
     @Column(name = "periodo", length = 100)
     private String periodo;
 

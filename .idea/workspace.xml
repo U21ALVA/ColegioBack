@@ -4,7 +4,35 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="05119576-4f5d-41af-a9c6-16101f2bf003" name="Changes" comment="" />
+    <list default="true" id="05119576-4f5d-41af-a9c6-16101f2bf003" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.factorypath" beforeDir="false" afterPath="$PROJECT_DIR$/.factorypath" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/controller/NotaController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/controller/NotaController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/controller/NotaHistorialController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/controller/NotaHistorialController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/controller/PagoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/controller/PagoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/controller/SiagieController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/controller/SiagieController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/ExportacionSiagieDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/ExportacionSiagieDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/NotaBulkRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/NotaBulkRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/NotaCreateRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/NotaCreateRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/NotaHistorialDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/NotaHistorialDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/ResumenAcademicoDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/ResumenAcademicoDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/SiagieExportRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/dto/SiagieExportRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/entity/ExportacionSiagie.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/entity/ExportacionSiagie.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/entity/NotaHistorial.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/entity/NotaHistorial.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/repository/AuditoriaAccesoRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/repository/AuditoriaAccesoRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/repository/BimestreRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/repository/BimestreRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/repository/NotaHistorialRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/repository/NotaHistorialRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/repository/PagoRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/repository/PagoRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/BecaService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/BecaService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/BimestreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/BimestreService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/BoletaService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/BoletaService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/NotaService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/NotaService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/PagoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/PagoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/SiagieExportService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pe/edu/colegioricardopalma/service/SiagieExportService.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -22,32 +50,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "Spring Boot.ColegioApiApplication.executor": "Run",
-    "git-widget-placeholder": "testbv2",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Spring Boot.ColegioApiApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="ColegioApiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="colegio-api" />
@@ -79,6 +107,9 @@
       <workItem from="1776616495376" duration="2135000" />
       <workItem from="1776648005494" duration="27000" />
       <workItem from="1776652204148" duration="1515000" />
+      <workItem from="1776709090095" duration="182000" />
+      <workItem from="1776888117093" duration="1223000" />
+      <workItem from="1779465177866" duration="607000" />
     </task>
     <servers />
   </component>
