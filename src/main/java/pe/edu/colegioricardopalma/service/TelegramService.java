@@ -59,7 +59,12 @@ public class TelegramService {
 
     @Transactional
     public TelegramVinculacionDto vincular(TelegramVincularRequest request) {
-        TelegramVinculacion vinculacion = telegramVinculacionRepository.findByCodigoVerificacion(request.getCodigo())
+        String codigoNormalizado = Optional.ofNullable(request.getCodigo())
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .orElseThrow(() -> new IllegalArgumentException("El código es requerido"));
+
+        TelegramVinculacion vinculacion = telegramVinculacionRepository.findByCodigoVerificacion(codigoNormalizado)
                 .orElseThrow(() -> new IllegalArgumentException("Código inválido"));
 
         if (vinculacion.getCodigoExpiraAt() == null || vinculacion.getCodigoExpiraAt().isBefore(LocalDateTime.now())) {
@@ -68,7 +73,13 @@ public class TelegramService {
 
         Optional<TelegramVinculacion> existenteChat = telegramVinculacionRepository.findByTelegramChatId(request.getChatId());
         if (existenteChat.isPresent() && !existenteChat.get().getId().equals(vinculacion.getId())) {
-            throw new IllegalStateException("Este chat ya está vinculado a otra cuenta");
+            TelegramVinculacion anterior = existenteChat.get();
+            anterior.setTelegramChatId(null);
+            anterior.setVerificado(false);
+            anterior.setFechaVinculacion(null);
+            anterior.setCodigoVerificacion(null);
+            anterior.setCodigoExpiraAt(null);
+            telegramVinculacionRepository.save(anterior);
         }
 
         vinculacion.setTelegramChatId(request.getChatId());
